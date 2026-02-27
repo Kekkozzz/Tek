@@ -47,7 +47,7 @@ export default function CodeEditor({
       </div>
 
       {/* Monaco Editor */}
-      <div className="flex-1">
+      <div className="flex-1 overflow-hidden">
         <Editor
           height="100%"
           defaultLanguage={language}
