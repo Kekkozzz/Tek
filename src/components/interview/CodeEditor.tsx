@@ -1,13 +1,26 @@
 "use client";
 
-import { useRef, useCallback } from "react";
-import Editor, { type OnMount } from "@monaco-editor/react";
+import { useRef, useCallback, Suspense, lazy } from "react";
+import type { OnMount } from "@monaco-editor/react";
 import type { editor } from "monaco-editor";
+
+const Editor = lazy(() => import("@monaco-editor/react"));
 
 interface CodeEditorProps {
   code: string;
   onChange: (value: string) => void;
   language?: string;
+}
+
+function EditorLoading() {
+  return (
+    <div className="flex-1 flex items-center justify-center">
+      <div className="text-center">
+        <div className="mx-auto mb-3 h-6 w-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+        <p className="font-mono text-xs text-text-muted">Caricamento editor...</p>
+      </div>
+    </div>
+  );
 }
 
 export default function CodeEditor({
@@ -46,9 +59,18 @@ export default function CodeEditor({
         </button>
       </div>
 
+      {/* AI reads code hint */}
+      <div className="flex items-center gap-2 border-b border-border bg-accent/5 px-5 py-2">
+        <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
+        <span className="font-mono text-[11px] text-accent/80">
+          L&apos;AI legge il tuo codice in automatico — scrivi e rispondi in chat, nessun invio necessario
+        </span>
+      </div>
+
       {/* Monaco Editor */}
       <div className="flex-1 overflow-hidden">
-        <Editor
+        <Suspense fallback={<EditorLoading />}>
+          <Editor
           height="100%"
           defaultLanguage={language}
           value={code}
@@ -74,6 +96,7 @@ export default function CodeEditor({
             automaticLayout: true,
           }}
         />
+        </Suspense>
       </div>
     </div>
   );

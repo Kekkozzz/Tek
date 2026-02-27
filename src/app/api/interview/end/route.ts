@@ -1,13 +1,23 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { buildReportPrompt } from "@/lib/prompts/report";
+import { updateSession, upsertTopicMastery } from "@/lib/supabase/queries";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { messages }: { messages: { role: string; content: string }[] } =
-      body;
+    const {
+      messages,
+      sessionId,
+      userId,
+      durationSeconds,
+    }: {
+      messages: { role: string; content: string }[];
+      sessionId?: string;
+      userId?: string;
+      durationSeconds?: number;
+    } = body;
 
     // Format messages for the report prompt
     const formattedMessages = messages
@@ -44,6 +54,36 @@ export async function POST(request: Request) {
         summary: "La sessione si e conclusa. Riprova per un report piu dettagliato.",
         topics_evaluated: [],
       };
+    }
+
+    // Save report to Supabase
+    if (sessionId) {
+      try {
+        await updateSession(sessionId, {
+          status: "completed",
+          score: report.score,
+          strengths: report.strengths,
+          improvements: report.improvements,
+          summary: report.summary,
+          topics_evaluated: report.topics_evaluated || [],
+          duration_seconds: durationSeconds,
+          completed_at: new Date().toISOString(),
+        });
+
+        // Update topic mastery if we have topics and a userId
+        if (userId && report.topics_evaluated?.length) {
+          // topics_evaluated can be objects {topic, category, score} or strings
+          const topicScores = report.topics_evaluated.map((t: { topic: string; category: string; score: number } | string) => {
+            if (typeof t === "string") {
+              return { topic: t, category: "General", score: report.score };
+            }
+            return { topic: t.topic, category: t.category || "General", score: t.score ?? report.score };
+          });
+          await upsertTopicMastery(userId, topicScores);
+        }
+      } catch (e) {
+        console.error("Failed to save report to Supabase:", e);
+      }
     }
 
     return Response.json(report);

@@ -1,17 +1,21 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import ChatPanel, { type ChatMessage } from "@/components/interview/ChatPanel";
 import CodeEditor from "@/components/interview/CodeEditor";
+import { useUserId } from "@/hooks/useUserId";
 import type { InterviewType, Difficulty } from "@/types";
 
 export default function InterviewSessionPage() {
+  const params = useParams();
+  const sessionId = params.sessionId as string;
   const searchParams = useSearchParams();
   const type = (searchParams.get("type") as InterviewType) || "react";
   const difficulty =
     (searchParams.get("difficulty") as Difficulty) || "mid";
+  const userId = useUserId();
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [code, setCode] = useState<string>(
@@ -20,12 +24,79 @@ export default function InterviewSessionPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [sessionStarted, setSessionStarted] = useState(false);
   const [sessionEnded, setSessionEnded] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(true);
   const [report, setReport] = useState<{
     score: number;
     strengths: string[];
     improvements: string[];
     summary: string;
   } | null>(null);
+  const sessionCreatedRef = useRef(false);
+  const startTimeRef = useRef<number>(Date.now());
+
+  // Restore session from Supabase on mount
+  useEffect(() => {
+    if (!sessionId) return;
+    async function restore() {
+      try {
+        const res = await fetch(`/api/sessions/${sessionId}`);
+        if (!res.ok) {
+          setIsRestoring(false);
+          return;
+        }
+        const { session, messages: dbMessages } = await res.json();
+
+        if (session && dbMessages?.length > 0) {
+          const restored: ChatMessage[] = dbMessages.map((m: { id: string; role: string; content: string; created_at: string }) => ({
+            id: m.id,
+            role: m.role as ChatMessage["role"],
+            content: m.content,
+            created_at: m.created_at,
+          }));
+          setMessages(restored);
+          setSessionStarted(true);
+          sessionCreatedRef.current = true;
+          startTimeRef.current = new Date(session.started_at).getTime();
+
+          if (session.status === "completed" && session.score != null) {
+            setSessionEnded(true);
+            setReport({
+              score: session.score,
+              strengths: session.strengths || [],
+              improvements: session.improvements || [],
+              summary: session.summary || "",
+            });
+          }
+        }
+      } catch (e) {
+        console.error("Failed to restore session:", e);
+      } finally {
+        setIsRestoring(false);
+      }
+    }
+    restore();
+  }, [sessionId]);
+
+  // Create session in Supabase
+  const ensureSessionCreated = useCallback(async () => {
+    if (sessionCreatedRef.current || !userId) return;
+    sessionCreatedRef.current = true;
+    try {
+      await fetch("/api/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: sessionId,
+          user_id: userId,
+          type,
+          difficulty,
+        }),
+      });
+    } catch (e) {
+      console.error("Failed to create session:", e);
+      sessionCreatedRef.current = false;
+    }
+  }, [sessionId, userId, type, difficulty]);
 
   const sendMessage = useCallback(
     async (userMessage: string) => {
@@ -53,6 +124,7 @@ export default function InterviewSessionPage() {
             type,
             difficulty,
             currentCode: code,
+            sessionId,
           }),
         });
 
@@ -98,12 +170,15 @@ export default function InterviewSessionPage() {
         setIsLoading(false);
       }
     },
-    [messages, code, type, difficulty, isLoading]
+    [messages, code, type, difficulty, isLoading, sessionId]
   );
 
   const startSession = useCallback(async () => {
     setSessionStarted(true);
     setIsLoading(true);
+    startTimeRef.current = Date.now();
+
+    await ensureSessionCreated();
 
     try {
       const response = await fetch("/api/interview/message", {
@@ -114,6 +189,7 @@ export default function InterviewSessionPage() {
           type,
           difficulty,
           currentCode: "",
+          sessionId,
         }),
       });
 
@@ -145,12 +221,14 @@ export default function InterviewSessionPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [type, difficulty]);
+  }, [type, difficulty, sessionId, ensureSessionCreated]);
 
   const endSession = useCallback(async () => {
     if (messages.length < 2) return;
     setSessionEnded(true);
     setIsLoading(true);
+
+    const durationSeconds = Math.round((Date.now() - startTimeRef.current) / 1000);
 
     try {
       const response = await fetch("/api/interview/end", {
@@ -161,6 +239,9 @@ export default function InterviewSessionPage() {
             role: m.role,
             content: m.content,
           })),
+          sessionId,
+          userId,
+          durationSeconds,
         }),
       });
 
@@ -173,7 +254,22 @@ export default function InterviewSessionPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [messages]);
+  }, [messages, sessionId, userId]);
+
+  // Loading state while restoring
+  if (isRestoring) {
+    return (
+      <>
+        <Navbar />
+        <main className="flex min-h-[calc(100vh-64px)] items-center justify-center">
+          <div className="text-center animate-fade-up">
+            <div className="mx-auto mb-4 h-8 w-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+            <p className="font-mono text-sm text-text-secondary">Caricamento sessione...</p>
+          </div>
+        </main>
+      </>
+    );
+  }
 
   // Pre-session start screen
   if (!sessionStarted) {
@@ -285,6 +381,22 @@ export default function InterviewSessionPage() {
               </ul>
             </div>
           </div>
+
+          {/* Actions */}
+          <div className="animate-fade-up stagger-4 mt-10 flex justify-center gap-4">
+            <a
+              href="/dashboard"
+              className="inline-flex items-center gap-2 rounded-lg bg-accent px-6 py-3 font-mono text-sm font-semibold uppercase tracking-wide text-bg-primary transition-all hover:brightness-110 glow-border"
+            >
+              Dashboard
+            </a>
+            <a
+              href="/history"
+              className="inline-flex items-center gap-2 rounded-lg border border-border bg-bg-secondary px-6 py-3 font-mono text-sm tracking-wide text-text-secondary transition-all hover:border-accent/30 hover:text-text-primary"
+            >
+              Cronologia
+            </a>
+          </div>
         </main>
       </>
     );
@@ -294,9 +406,9 @@ export default function InterviewSessionPage() {
   return (
     <div className="flex h-screen flex-col">
       <Navbar />
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden flex-col md:flex-row">
         {/* Chat Panel */}
-        <div className="flex w-1/2 flex-col border-r border-border bg-bg-secondary">
+        <div className="flex flex-col border-b md:border-b-0 md:border-r border-border bg-bg-secondary h-1/2 md:h-auto md:w-1/2">
           <ChatPanel
             messages={messages}
             isLoading={isLoading}
@@ -306,7 +418,7 @@ export default function InterviewSessionPage() {
         </div>
 
         {/* Code Editor */}
-        <div className="flex w-1/2 flex-col bg-bg-primary">
+        <div className="flex flex-col bg-bg-primary h-1/2 md:h-auto md:w-1/2">
           <CodeEditor code={code} onChange={setCode} />
         </div>
       </div>

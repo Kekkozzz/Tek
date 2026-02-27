@@ -10,7 +10,9 @@ Rispondi ESCLUSIVAMENTE in formato JSON valido con questa struttura:
   "strengths": [<array di 2-4 punti di forza specifici>],
   "improvements": [<array di 2-4 aree di miglioramento specifiche>],
   "summary": "<riassunto di 2-3 frasi della performance complessiva>",
-  "topics_evaluated": [<array di argomenti tecnici toccati durante l'intervista>]
+  "topics_evaluated": [
+    {"topic": "<nome argomento>", "category": "<React|JavaScript|Next.js|CSS|Testing>", "score": <0-100>}
+  ]
 }
 
 CRITERI DI VALUTAZIONE:

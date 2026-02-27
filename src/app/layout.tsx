@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, JetBrains_Mono } from "next/font/google";
+import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -18,6 +19,13 @@ export const metadata: Metadata = {
   title: "TekInterview — AI Mock Interview",
   description:
     "Preparati ai colloqui tecnici frontend con simulazioni di intervista AI-powered. React, Next.js, TypeScript.",
+  keywords: ["interview", "mock interview", "frontend", "React", "Next.js", "TypeScript", "AI", "coding interview"],
+  openGraph: {
+    title: "TekInterview — AI Mock Interview",
+    description: "Simulazioni di colloquio tecnico AI-powered per sviluppatori frontend.",
+    type: "website",
+  },
+  robots: "index, follow",
 };
 
 export default function RootLayout({
@@ -30,7 +38,9 @@ export default function RootLayout({
       <body
         className={`${fraunces.variable} ${jetbrainsMono.variable} antialiased`}
       >
-        {children}
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
       </body>
     </html>
   );
