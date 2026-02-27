@@ -1,7 +1,7 @@
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { buildKnowledgePrompt } from "@/lib/prompts/knowledge";
-import { geminiFlash } from "@/lib/gemini";
+import { getGeminiModel, getApiKeyFromRequest } from "@/lib/gemini";
 import { NextRequest } from "next/server";
 import type { TechTrack } from "@/types";
 import { TRACK_PROMPT_DATA } from "@/lib/prompts/tracks-data";
@@ -53,7 +53,9 @@ export async function POST(request: NextRequest) {
         // Generate with Gemini
         const prompt = buildKnowledgePrompt(track as TechTrack, resolvedCategory, topic);
 
-        const result = await geminiFlash.generateContent(prompt);
+        const userApiKey = getApiKeyFromRequest(request);
+        const model = getGeminiModel(userApiKey);
+        const result = await model.generateContent(prompt);
         const text = result.response.text().trim();
 
         // Parse the JSON response

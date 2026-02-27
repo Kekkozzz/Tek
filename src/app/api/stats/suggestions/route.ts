@@ -1,8 +1,8 @@
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 import { getUserStats } from "@/lib/supabase/queries";
-import { geminiFlash } from "@/lib/gemini";
+import { getGeminiModel, getApiKeyFromRequest } from "@/lib/gemini";
 
-export async function GET() {
+export async function GET(request: Request) {
     try {
         const user = await getAuthenticatedUser();
         if (!user) {
@@ -43,7 +43,9 @@ Rispondi ESCLUSIVAMENTE con un JSON array (senza markdown, senza backtick):
 
 Rispondi in ITALIANO. Sii specifico e actionable.`;
 
-        const result = await geminiFlash.generateContent(prompt);
+        const userApiKey = getApiKeyFromRequest(request);
+        const model = getGeminiModel(userApiKey);
+        const result = await model.generateContent(prompt);
         const text = result.response.text().trim();
 
         let suggestions;

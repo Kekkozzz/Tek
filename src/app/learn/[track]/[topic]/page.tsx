@@ -46,7 +46,8 @@ export default function TopicArticlePage() {
                 setLoading(false);
                 setGenerating(true);
 
-                const genRes = await fetch("/api/learn/generate", {
+                const { fetchWithKey } = await import("@/hooks/useApiKey");
+                const genRes = await fetchWithKey("/api/learn/generate", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ track, category: "", topic }),

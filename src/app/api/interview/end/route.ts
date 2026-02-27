@@ -1,10 +1,8 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { createGeminiClient, getApiKeyFromRequest } from "@/lib/gemini";
 import { buildReportPrompt } from "@/lib/prompts/report";
 import { updateSession, upsertTopicMastery } from "@/lib/supabase/queries";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 import type { TechTrack } from "@/types";
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 const REPORT_TIMEOUT_MS = 60_000;
 
@@ -53,6 +51,8 @@ export async function POST(request: Request) {
       language: language || "react",
     });
 
+    const userApiKey = getApiKeyFromRequest(request);
+    const genAI = createGeminiClient(userApiKey);
     const model = genAI.getGenerativeModel({
       model: "gemini-3-flash-preview",
     });

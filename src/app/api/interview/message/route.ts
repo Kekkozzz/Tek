@@ -1,10 +1,8 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { createGeminiClient, getApiKeyFromRequest } from "@/lib/gemini";
 import { buildInterviewerPrompt } from "@/lib/prompts/interviewer";
 import { saveMessage } from "@/lib/supabase/queries";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 import type { InterviewType, Difficulty, TechTrack } from "@/types";
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 const GEMINI_TIMEOUT_MS = 30_000;
 
@@ -71,6 +69,8 @@ export async function POST(request: Request) {
       }
     }
 
+    const userApiKey = getApiKeyFromRequest(request);
+
     const systemPrompt = buildInterviewerPrompt({
       track: track || "frontend",
       type,
@@ -79,6 +79,7 @@ export async function POST(request: Request) {
       currentCode: currentCode || undefined,
     });
 
+    const genAI = createGeminiClient(userApiKey);
     const model = genAI.getGenerativeModel({
       model: "gemini-3-flash-preview",
       systemInstruction: systemPrompt,

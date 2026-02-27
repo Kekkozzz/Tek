@@ -7,6 +7,7 @@ import ChatPanel, { type ChatMessage } from "@/components/interview/ChatPanel";
 import CodeEditor from "@/components/interview/CodeEditor";
 import type { InterviewType, Difficulty, TechTrack } from "@/types";
 import { TECH_TRACKS, INTERVIEW_TYPES } from "@/types";
+import { fetchWithKey } from "@/hooks/useApiKey";
 
 export default function InterviewSessionPage() {
   const params = useParams();
@@ -122,7 +123,7 @@ export default function InterviewSessionPage() {
       abortRef.current = controller;
 
       try {
-        const response = await fetch("/api/interview/message", {
+        const response = await fetchWithKey("/api/interview/message", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           signal: controller.signal,
@@ -260,7 +261,7 @@ export default function InterviewSessionPage() {
     const durationSeconds = Math.round((Date.now() - startTimeRef.current) / 1000);
 
     try {
-      const response = await fetch("/api/interview/end", {
+      const response = await fetchWithKey("/api/interview/end", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

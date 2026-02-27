@@ -19,7 +19,8 @@ export default function AISuggestions() {
     useEffect(() => {
         async function load() {
             try {
-                const res = await fetch("/api/stats/suggestions");
+                const { fetchWithKey } = await import("@/hooks/useApiKey");
+                const res = await fetchWithKey("/api/stats/suggestions");
                 if (res.ok) {
                     const data = await res.json();
                     setSuggestions(data.suggestions || []);
