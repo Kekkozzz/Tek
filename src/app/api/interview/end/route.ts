@@ -6,6 +6,8 @@ import type { TechTrack } from "@/types";
 
 const REPORT_TIMEOUT_MS = 60_000;
 
+export const maxDuration = 60;
+
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
   return Promise.race([
     promise,

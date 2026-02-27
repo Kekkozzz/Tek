@@ -4,6 +4,8 @@ import { saveMessage } from "@/lib/supabase/queries";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 import type { InterviewType, Difficulty, TechTrack } from "@/types";
 
+export const maxDuration = 60;
+
 const GEMINI_TIMEOUT_MS = 30_000;
 
 type GeminiMessage = { role: "user" | "model"; parts: { text: string }[] };
@@ -56,16 +58,20 @@ export async function POST(request: Request) {
       sessionId?: string;
     } = body;
 
-    // Save user message to Supabase (fire-and-forget to not block AI response)
+    // Save user message to Supabase securely
     if (sessionId && messages.length > 0) {
       const lastMsg = messages[messages.length - 1];
       if (lastMsg.role === "user") {
-        saveMessage({
-          session_id: sessionId,
-          role: "user",
-          content: lastMsg.content,
-          code_snapshot: currentCode || undefined,
-        }).catch((e) => console.error("Failed to save user message:", e));
+        try {
+          await saveMessage({
+            session_id: sessionId,
+            role: "user",
+            content: lastMsg.content,
+            code_snapshot: currentCode || undefined,
+          });
+        } catch (e) {
+          console.error("Failed to save user message:", e);
+        }
       }
     }
 
@@ -112,15 +118,13 @@ export async function POST(request: Request) {
                 controller.enqueue(new TextEncoder().encode(text));
               }
             }
-            controller.close();
-          } catch (error) {
-            controller.error(error);
-          } finally {
-            // Always persist the assistant message, even if stream was aborted
             if (sessionId && fullResponse) {
               try { await saveMessage({ session_id: sessionId, role: "assistant", content: fullResponse }); }
               catch (e) { console.error("Failed to save assistant message:", e); }
             }
+            controller.close();
+          } catch (error) {
+            controller.error(error);
           }
         },
       });
@@ -164,15 +168,13 @@ export async function POST(request: Request) {
               controller.enqueue(new TextEncoder().encode(text));
             }
           }
-          controller.close();
-        } catch (error) {
-          controller.error(error);
-        } finally {
-          // Always persist the assistant message, even if stream was aborted
           if (sessionId && fullResponse) {
             try { await saveMessage({ session_id: sessionId, role: "assistant", content: fullResponse }); }
             catch (e) { console.error("Failed to save assistant message:", e); }
           }
+          controller.close();
+        } catch (error) {
+          controller.error(error);
         }
       },
     });
