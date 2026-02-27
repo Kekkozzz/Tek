@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
@@ -23,13 +22,6 @@ export default function Navbar() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3 group">
-          <Image
-            src="/logo.png"
-            alt="TekInterview"
-            width={36}
-            height={36}
-            className="rounded-lg"
-          />
           <span className="font-display text-lg font-semibold text-text-primary tracking-tight">
             Tek<span className="text-accent">Interview</span>
           </span>

@@ -20,10 +20,6 @@ export const metadata: Metadata = {
   description:
     "Preparati ai colloqui tecnici frontend con simulazioni di intervista AI-powered. React, Next.js, TypeScript.",
   keywords: ["interview", "mock interview", "frontend", "React", "Next.js", "TypeScript", "AI", "coding interview"],
-  icons: {
-    icon: "/logo.png",
-    apple: "/logo.png",
-  },
   openGraph: {
     title: "TekInterview — AI Mock Interview",
     description: "Simulazioni di colloquio tecnico AI-powered per sviluppatori frontend.",

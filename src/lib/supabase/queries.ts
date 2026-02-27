@@ -148,17 +148,36 @@ export async function getUserTopics(userId: string) {
   return data ?? [];
 }
 
+const VALID_TOPICS: Record<string, string> = {
+  "hooks": "Hooks", "state management": "State Management", "component patterns": "Component Patterns",
+  "performance": "Performance", "context api": "Context API", "server components": "Server Components",
+  "closures": "Closures", "promises & async": "Promises & Async", "promises and async": "Promises & Async",
+  "prototypes": "Prototypes", "es6+": "ES6+", "es6": "ES6+", "event loop": "Event Loop",
+  "type coercion": "Type Coercion", "app router": "App Router", "server actions": "Server Actions",
+  "middleware": "Middleware", "ssr/ssg/isr": "SSR/SSG/ISR", "ssr": "SSR/SSG/ISR", "ssg": "SSR/SSG/ISR",
+  "api routes": "API Routes", "caching": "Caching", "flexbox": "Flexbox", "grid": "Grid",
+  "responsive design": "Responsive Design", "animations": "Animations", "tailwind": "Tailwind",
+  "css-in-js": "CSS-in-JS", "unit testing": "Unit Testing", "react testing library": "React Testing Library",
+  "e2e (playwright)": "E2E (Playwright)", "e2e": "E2E (Playwright)", "playwright": "E2E (Playwright)",
+  "mocking": "Mocking", "test patterns": "Test Patterns",
+};
+
+function normalizeTopicName(name: string): string {
+  return VALID_TOPICS[name.toLowerCase()] || name;
+}
+
 export async function upsertTopicMastery(
   userId: string,
   topics: { topic: string; category: string; score: number }[]
 ) {
   const supabase = createAdminClient();
   for (const t of topics) {
+    const topicName = normalizeTopicName(t.topic);
     const { data: existing } = await supabase
       .from("topic_mastery")
       .select("*")
       .eq("user_id", userId)
-      .eq("topic", t.topic)
+      .eq("topic", topicName)
       .single();
 
     if (existing) {
@@ -176,7 +195,7 @@ export async function upsertTopicMastery(
     } else {
       await supabase.from("topic_mastery").insert({
         user_id: userId,
-        topic: t.topic,
+        topic: topicName,
         category: t.category,
         mastery_level: Math.min(100, Math.max(0, t.score)),
         sessions_count: 1,

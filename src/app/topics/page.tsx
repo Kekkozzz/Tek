@@ -107,8 +107,16 @@ export default function TopicsPage() {
     load();
   }, []);
 
-  // Build a lookup map from real data
-  const masteryMap = new Map(topicData.map((t) => [t.topic, t]));
+  // Build a lookup map from real data (case-insensitive matching)
+  const masteryMap = new Map<string, TopicData>();
+  for (const t of topicData) {
+    masteryMap.set(t.topic, t);
+    masteryMap.set(t.topic.toLowerCase(), t);
+  }
+
+  function findTopicData(topic: string): TopicData | undefined {
+    return masteryMap.get(topic) || masteryMap.get(topic.toLowerCase());
+  }
 
   return (
     <>
@@ -143,7 +151,7 @@ export default function TopicsPage() {
                 </h2>
                 <div className="space-y-3">
                   {category.topics.map((topic) => {
-                    const data = masteryMap.get(topic);
+                    const data = findTopicData(topic);
                     const level = data?.mastery_level ?? 0;
                     return (
                       <div key={topic} className="flex items-center justify-between">
