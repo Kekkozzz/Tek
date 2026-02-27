@@ -46,8 +46,8 @@ Schede formative generate **automaticamente dall'AI** per ogni argomento. Punti 
 </td>
 <td width="50%">
 
-### 📊 Dashboard & Analytics
-Heatmap attività (6 mesi), radar chart competenze, andamento punteggi e **suggerimenti AI personalizzati** su come migliorare.
+### � BYOK (Bring Your Own Key)
+Usa la tua API Key di Google Gemini direttamente dal browser. **100% gratuito**, sicuro, e permette interviste illimitate senza gravare sui costi dell'infrastruttura.
 
 </td>
 </tr>
@@ -126,7 +126,7 @@ npm install
 Crea un file `.env.local` nella root del progetto:
 
 ```env
-# AI
+# AI (Opzionale: gli utenti possono usare la propria chiave tramite l'interfaccia BYOK)
 GEMINI_API_KEY=la_tua_api_key_gemini
 
 # Supabase
@@ -138,6 +138,8 @@ SUPABASE_SERVICE_ROLE_KEY=la_tua_service_role_key
 # PISTON_API_URL=http://localhost:2000/api/v2/piston
 # NEXT_PUBLIC_CODE_EXECUTION_ENABLED=true
 ```
+
+> **💡 Nota su Gemini API**: TekInterview supporta il **BYOK (Bring Your Own Key)**. Se non imposti `GEMINI_API_KEY` nel file `.env.local`, l'app funzionerà comunque: chiederà agli utenti di inserire la propria chiave API gratuitamente tramite l'interfaccia (salvata solo in localStorage).
 
 ### 3. Setup Database
 
