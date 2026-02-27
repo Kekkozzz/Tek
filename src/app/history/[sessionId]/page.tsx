@@ -7,7 +7,16 @@ import Navbar from "@/components/layout/Navbar";
 import MessageBubble from "@/components/interview/MessageBubble";
 import { INTERVIEW_TYPES } from "@/types";
 import type { InterviewType, MessageRole } from "@/types";
-import { FileDown } from "lucide-react";
+import { FileDown, BookOpen, Code, Network, MessageSquare, Bug, Blocks, HelpCircle } from "lucide-react";
+
+const ICON_MAP: Record<string, React.ElementType> = {
+  BookOpen,
+  Code,
+  Network,
+  MessageSquare,
+  Bug,
+  Blocks,
+};
 
 interface SessionData {
   id: string;
@@ -107,7 +116,10 @@ export default function SessionReviewPage() {
           </Link>
           <div className="mt-4 flex items-center gap-4">
             <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-accent/10 border border-accent/20 font-mono text-lg font-bold text-accent">
-              {typeConfig.icon}
+              {(() => {
+                const Icon = ICON_MAP[typeConfig.icon] || HelpCircle;
+                return <Icon className="h-6 w-6" />;
+              })()}
             </div>
             <div>
               <h1 className="font-display text-3xl font-bold tracking-tight">
@@ -161,8 +173,8 @@ export default function SessionReviewPage() {
           <button
             onClick={() => setTab("report")}
             className={`cursor-pointer px-4 py-3 font-mono text-sm transition-all border-b-2 ${tab === "report"
-                ? "text-accent border-accent"
-                : "text-text-secondary border-transparent hover:text-text-primary"
+              ? "text-accent border-accent"
+              : "text-text-secondary border-transparent hover:text-text-primary"
               }`}
           >
             Report
@@ -170,8 +182,8 @@ export default function SessionReviewPage() {
           <button
             onClick={() => setTab("chat")}
             className={`cursor-pointer px-4 py-3 font-mono text-sm transition-all border-b-2 ${tab === "chat"
-                ? "text-accent border-accent"
-                : "text-text-secondary border-transparent hover:text-text-primary"
+              ? "text-accent border-accent"
+              : "text-text-secondary border-transparent hover:text-text-primary"
               }`}
           >
             Conversazione ({messages.length})

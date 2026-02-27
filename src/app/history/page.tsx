@@ -5,6 +5,16 @@ import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import { INTERVIEW_TYPES } from "@/types";
 import type { InterviewType } from "@/types";
+import { BookOpen, Code, Network, MessageSquare, Bug, Blocks, HelpCircle } from "lucide-react";
+
+const ICON_MAP: Record<string, React.ElementType> = {
+  BookOpen,
+  Code,
+  Network,
+  MessageSquare,
+  Bug,
+  Blocks,
+};
 
 interface SessionItem {
   id: string;
@@ -70,8 +80,8 @@ export default function HistoryPage() {
               key={f}
               onClick={() => { setLoading(true); setFilter(f); }}
               className={`cursor-pointer px-4 py-2 rounded-lg font-mono text-xs uppercase tracking-wide transition-all ${filter === f
-                  ? "bg-accent/10 text-accent border border-accent/20"
-                  : "text-text-secondary hover:text-text-primary hover:bg-bg-elevated border border-transparent"
+                ? "bg-accent/10 text-accent border border-accent/20"
+                : "text-text-secondary hover:text-text-primary hover:bg-bg-elevated border border-transparent"
                 }`}
             >
               {f === "all" ? "Tutte" : f === "completed" ? "Completate" : f === "active" ? "Attive" : "Abbandonate"}
@@ -116,7 +126,10 @@ export default function HistoryPage() {
                 >
                   <Link href={cardHref} className="flex items-center gap-4 flex-1 min-w-0">
                     <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-bg-elevated border border-border font-mono text-sm font-bold text-text-muted group-hover:text-accent group-hover:border-accent/20 transition-colors">
-                      {typeConfig.icon}
+                      {(() => {
+                        const Icon = ICON_MAP[typeConfig.icon] || HelpCircle;
+                        return <Icon className="h-5 w-5" />;
+                      })()}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -127,10 +140,10 @@ export default function HistoryPage() {
                           {session.difficulty}
                         </span>
                         <span className={`rounded px-2 py-0.5 font-mono text-[10px] ${session.status === "completed"
-                            ? "bg-accent/10 text-accent border border-accent/20"
-                            : session.status === "active"
-                              ? "bg-indigo/10 text-indigo border border-indigo/20"
-                              : "bg-warning/10 text-warning border border-warning/20"
+                          ? "bg-accent/10 text-accent border border-accent/20"
+                          : session.status === "active"
+                            ? "bg-indigo/10 text-indigo border border-indigo/20"
+                            : "bg-warning/10 text-warning border border-warning/20"
                           }`}>
                           {session.status === "completed" ? "completata" : session.status === "active" ? "attiva" : "abbandonata"}
                         </span>
