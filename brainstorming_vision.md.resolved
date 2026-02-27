@@ -1,0 +1,310 @@
+# 🚀 TekInterview — La Visione Grande
+
+## Stato Attuale
+
+TekInterview è già una piattaforma solida con fondamenta eccellenti:
+- ✅ AI interviewer con Gemini (streaming, multi-turn)
+- ✅ Monaco Editor integrato per live coding
+- ✅ Report automatico con punteggio e feedback
+- ✅ Design "Terminal Luxe" premium
+- ✅ 6 tipi di intervista, 3 livelli di difficoltà
+- ❌ Solo JavaScript/React — nessun altro linguaggio
+- ❌ Nessuna community o contenuto condiviso
+- ❌ Nessun percorso di apprendimento strutturato
+- ❌ Nessun sistema di ranking/gamification
+
+**Obiettivo**: Diventare il **punto di riferimento italiano per superare le tech interview**.
+
+---
+
+## 🌍 1. Espansione per Tecnologie — "Tech Tracks"
+
+L'architettura attuale è quasi pronta per essere generalizzata. Il prompt e i tipi sono hardcoded per React/JS, ma il pattern (tipo + difficoltà + sessione AI) è universale.
+
+### Track Proposte (ordinate per domanda di mercato 🇮🇹)
+
+| Track | Linguaggi/Tool | Esempio Domande |
+|:--|:--|:--|
+| **Frontend** | React, Angular, Vue, Svelte, HTML/CSS | "Implementa un componente con virtual scrolling" |
+| **Backend** | Node.js, Java/Spring, Python/Django, C#/.NET, Go | "Progetta un sistema di rate limiting" |
+| **Mobile** | Swift, Kotlin, Flutter, React Native | "Gestisci il ciclo di vita di un'activity Android" |
+| **DevOps/Cloud** | Docker, Kubernetes, AWS, Terraform, CI/CD | "Progetta una pipeline CI/CD per microservizi" |
+| **Data/ML** | Python, SQL, Pandas, TensorFlow, Spark | "Ottimizza questa query con milioni di righe" |
+| **Database** | SQL, PostgreSQL, MongoDB, Redis | "Spiega gli isolation levels e quando usarli" |
+| **Cybersecurity** | Networking, OWASP, Linux, Scripting | "Trova le vulnerabilità in questo endpoint REST" |
+| **Algoritmi & DSA** | Qualsiasi linguaggio | "Risolvi questo problema di dynamic programming" |
+| **System Design** | Architettura cloud-scale | "Progetta WhatsApp da zero" |
+| **Low-Level** | C, C++, Rust, Sistemi Embedded | "Implementa un memory allocator custom" |
+
+### Come Implementarlo
+
+L'idea chiave è il concetto di **"Technology Track"** — un namespace che raggruppa:
+- Un set di **interview types** specifici
+- Un set di **system prompts** dedicati
+- Il **linguaggio** del Monaco Editor configurato per la track
+- Le **domande e topic** specifici per la valutazione
+
+```
+/interview/setup?track=backend&lang=java
+/interview/setup?track=frontend&lang=react
+/interview/setup?track=dsa&lang=python
+```
+
+---
+
+## 🧠 2. Killer Features — Cosa Ci Distingue
+
+### 2.1. 🎭 Mock Interview Completa (Voice Mode)
+> *Come un vero colloquio, ma senza ansia*
+
+- **Web Speech API** per input vocale del candidato
+- **Gemini + Text-to-Speech** per la voce dell'intervistatore
+- Modalità "videocall simulata" con avatar AI animato
+- Timer visibile come in un vero colloquio
+- Trascrizione salvata + analisi sentiment/confidence
+
+**Perché è killer**: Nessuna piattaforma italiana offre mock interview vocali con AI. Le piattaforme US (Pramp, interviewing.io) costano e sono in inglese.
+
+---
+
+### 2.2. 📚 Knowledge Base — "Il Manuale delle Tech Interview Italiane"
+> *Tutto quello che devi sapere, curato dalla community*
+
+Una wiki/knowledge base con:
+- **Schede argomento** (es: "Closures in JavaScript", "SOLID Principles", "CAP Theorem")
+- **Domande frequenti per azienda** — "Cosa chiede Auriga?", "Cosa chiede Reply?"
+- **Cheat sheet** scaricabili in PDF
+- **Flashcard mode** con spaced repetition
+- Contenuti curati dalla community + votati
+
+```
+/learn/topics/javascript/closures
+/learn/companies/auriga
+/learn/flashcards
+```
+
+---
+
+### 2.3. 💻 Code Playground Potenziato
+> *Non solo un editor, ma un ambiente di esecuzione*
+
+Evoluzione del Monaco Editor attuale:
+- **Esecuzione codice server-side** (sandbox con Judge0 o Piston API)
+- **Test suite automatici** — l'AI genera test cases e verifica l'output
+- **Supporto multi-linguaggio** — Java, Python, C++, Go, Rust, SQL...
+- **Diff visivo** — confronto soluzione utente vs soluzione ottimale
+- **Complessità automatica** — analisi Big O dell'algoritmo scritto
+
+---
+
+### 2.4. 🏆 Gamification & Ranking
+> *Motivazione attraverso la competizione sana*
+
+- **XP e Livelli** — guadagni punti per ogni sessione completata
+- **Badge/Achievement** — "Primo colloquio", "10 streak", "Expert React", "Debugger Master"
+- **Leaderboard settimanale/mensile** (opt-in per privacy)
+- **Streak giornaliera** — "Fai almeno 1 sessione al giorno"
+- **Radar Chart personale** — visualizzazione delle competenze come in un RPG
+- **Sfide settimanali** — "Questa settimana: System Design Challenge"
+
+```
+/profile/achievements
+/leaderboard
+/challenges
+```
+
+---
+
+### 2.5. 🤝 Community Features
+> *Imparare insieme è più efficace*
+
+- **Peer Interview** — match con un altro utente per fare colloqui incrociati (WebRTC)
+- **Forum Q&A** — domande e risposte tipo StackOverflow, ma focalizzato interviews
+- **Review peer** — il codice delle sessioni può essere reviewato da altri utenti
+- **Interview Stories** — "Ho superato il colloquio da Reply, ecco come"
+- **Mentor matching** — senior volontari che guidano i junior
+
+---
+
+### 2.6. 📊 Analytics & Insights Avanzati
+> *Capire esattamente dove migliorare*
+
+Evoluzione della Dashboard attuale:
+- **Heatmap attività** (stile GitHub contributions)
+- **Trend dei punteggi** nel tempo, per track e tipo
+- **Weak areas detector** — l'AI analizza lo storico e suggerisce il prossimo step
+- **Comparazione anonima** — "Sei nel top 20% per React tra i candidati Junior"
+- **Report PDF** esportabile da allegare a candidature
+- **Preparazione target** — "Mi preparo per il colloquio da Auriga: ecco il piano personalizzato"
+
+---
+
+### 2.7. 🏢 "Company Mode" — Prep per Aziende Specifiche
+> *Ogni azienda ha il suo stile di colloquio*
+
+- Database di **profili aziendali** con info sullo stack, processo di hiring, esempi di domande
+- L'AI simula lo **stile specifico** dell'azienda (es: Auriga chiede molto OOP e design patterns)
+- **Review da ex-candidati** — "Il colloquio da Accenture dura 45 min, 2 live coding + behavioral"
+- Integrazione con **Glassdoor/LinkedIn** per domande reali
+
+```
+/companies/auriga
+/companies/reply
+/companies/accenture
+/interview/setup?company=auriga
+```
+
+---
+
+## 🎨 3. Design & UX Evolution
+
+### Landing Page che Converte
+- **Hero animato** con code typing effect
+- **Social proof**: contatore "X colloqui simulati", testimonianze
+- **CTA chiaro**: "Inizia gratis — Nessuna carta di credito"
+- Video demo embedded di 30 secondi
+
+### Onboarding Personalizzato
+1. "Qual è il tuo obiettivo?" → Passare un colloquio / Migliorare
+2. "Che ruolo cerchi?" → Frontend, Backend, Full-stack, Mobile...
+3. "Quanti anni di esperienza?" → Junior, Mid, Senior
+4. "Per quale azienda ti prepari?" → Auriga, Reply, Other...
+5. → Piano personalizzato generato dall'AI
+
+### Mobile-First
+- UI responsive già buona, ma ottimizzare per uso da smartphone
+- L'editor non serve su mobile → modalità "solo domande teoriche"
+- Push notifications per streak e reminder
+
+---
+
+## 💰 4. Modello di Business (Sostenibilità)
+
+| Tier | Prezzo | Cosa include |
+|:--|:--|:--|
+| **Free** | €0 | 3 mock interview/mese, track Frontend, community read-only |
+| **Pro** | €9.99/mese | Illimitato, tutte le track, voice mode, analytics avanzati, peer interview |
+| **Team** | €29.99/mese | Per coding bootcamp e università, dashboard tutor, bulk accounts |
+| **Enterprise** | Custom | Per aziende — screening pre-colloquio, white-label |
+
+**Alternative gratuite di monetizzazione**:
+- Donazioni / GitHub Sponsors
+- Ads non invasivi
+- Aziende sponsor per le company pages
+
+---
+
+## 🏗️ 5. Architettura Evolutiva
+
+```
+                    TEKINTERVIEW v2.0 — ARCHITETTURA
+┌──────────────────────────────────────────────────────────┐
+│                      CLIENT (Next.js)                     │
+│  ┌─────────┐ ┌──────────┐ ┌────────┐ ┌──────────────┐   │
+│  │ Landing  │ │Interview │ │  Learn │ │  Community    │   │
+│  │ + Onb.  │ │ Session  │ │ & Wiki │ │  & Forum     │   │
+│  └─────────┘ └──────────┘ └────────┘ └──────────────┘   │
+│  ┌────────────┐ ┌───────────┐ ┌────────────────────┐    │
+│  │ Dashboard  │ │ Companies │ │  Profile & Ranking │    │
+│  │ Analytics  │ │  & Prep   │ │  & Achievements    │    │
+│  └────────────┘ └───────────┘ └────────────────────┘    │
+└──────────────────────────┬───────────────────────────────┘
+                           │
+┌──────────────────────────┴───────────────────────────────┐
+│                    API LAYER (Next.js + Edge)              │
+│  /api/interview/*   /api/learn/*   /api/community/*       │
+│  /api/analytics/*   /api/companies/*  /api/code/execute   │
+└──────────────────────────┬───────────────────────────────┘
+                           │
+┌──────────────────────────┴───────────────────────────────┐
+│                       SERVICES                            │
+│  ┌─────────┐ ┌──────────┐ ┌──────┐ ┌─────────────────┐  │
+│  │ Gemini  │ │ Supabase │ │ Auth │ │  Code Executor  │  │
+│  │  (AI)   │ │  (DB)    │ │      │ │  (Judge0/Piston)│  │
+│  └─────────┘ └──────────┘ └──────┘ └─────────────────┘  │
+│  ┌──────────────┐ ┌──────────┐ ┌───────────────────┐    │
+│  │  WebRTC      │ │  Redis   │ │  File Storage     │    │
+│  │  (P2P Peer)  │ │  (Cache) │ │  (Supabase/S3)    │    │
+│  └──────────────┘ └──────────┘ └───────────────────┘    │
+└──────────────────────────────────────────────────────────┘
+```
+
+### Db Schema Expansion (Supabase)
+
+Nuove tabelle chiave:
+- `tech_tracks` — definizione delle track (frontend, backend, dsa...)
+- `track_topics` — argomenti per track con materiare di studio
+- `company_profiles` — info aziende + domande segnalate
+- `user_achievements` — badge e XP
+- `peer_sessions` — sessioni peer-to-peer
+- `flashcards` — domande per spaced repetition
+- `community_posts` — forum Q&A
+- `company_reviews` — feedback sui processi di hiring
+
+---
+
+## 📅 6. Roadmap — Fasi di Rilascio
+
+### ⚡ Fase 1 — "Foundation" (2-3 settimane)
+> *Rendere il sistema generalizzabile*
+
+- [ ] Refactor del type system per supportare Tech Tracks
+- [ ] Generalizzazione dei prompt AI (non più hardcoded React)
+- [ ] Aggiungere le prime 4-5 track (Frontend, Backend Java, Backend Python, DSA, SQL)
+- [ ] Configurazione linguaggio Monaco Editor per track
+- [ ] Onboarding flow (3 domande per personalizzare)
+- [ ] Deploy schema Supabase e completare auth flow
+
+### 🚀 Fase 2 — "Core Value" (3-4 settimane)
+> *Le feature che ci rendono unici*
+
+- [ ] Code execution server-side (sandbox)
+- [ ] Test automatici generati dall'AI per live coding
+- [ ] Knowledge Base con le prime 50 schede argomento
+- [ ] Dashboard analytics avanzati (heatmap, trend, radar chart)
+- [ ] Company Mode — prime 10 aziende italiane (Auriga, Reply, Accenture...)
+- [ ] Export report PDF
+
+### 🏆 Fase 3 — "Engagement" (4-6 settimane)
+> *Creare la retention e la community*
+
+- [ ] Sistema gamification (XP, livelli, badge, streak)
+- [ ] Leaderboard
+- [ ] Flashcard con spaced repetition
+- [ ] Forum Q&A
+- [ ] Voice mode (Web Speech API + TTS)
+- [ ] Mobile-optimized view
+
+### 🌐 Fase 4 — "Scale" (2-3 mesi)
+> *Crescita e monetizzazione*
+
+- [ ] Peer interview (WebRTC)
+- [ ] Sistema di mentoring
+- [ ] Tier pricing (Free/Pro/Team)
+- [ ] SEO content strategy (blog + landing per ogni track)
+- [ ] Partnership con coding bootcamp italiani (Boolean, Epicode, Start2Impact...)
+- [ ] Aggiungere tutte le track rimanenti (Mobile, DevOps, Security, Low-Level)
+
+---
+
+## 💎 7. Quick Wins — Cose da Fare Subito
+
+Queste richiedono poco sforzo ma hanno grande impatto:
+
+1. **Aggiungere `track` al type system** — bastano poche modifiche a [types/index.ts](file:///c:/Users/kekko/OneDrive/Desktop/Dev/Tek/src/types/index.ts) e al prompt
+2. **Creare 3-4 prompt template** per backend Java, Python, DSA — riutilizzando la struttura di [interviewer.ts](file:///c:/Users/kekko/OneDrive/Desktop/Dev/Tek/src/lib/prompts/interviewer.ts)
+3. **Configurazione dinamica Monaco** — cambiare linguaggio in base alla track selezionata
+4. **"Powered by AI" badge** sulla landing — aumenta la credibilità
+5. **OG Image + Meta tag** per sharing su LinkedIn/social — fondamentale per il passaparola
+6. **Counter animato** sulla landing — "1,234 colloqui simulati" (anche se inizialmente è un numero fisso dimostrativo)
+
+---
+
+## 🤔 Domande Aperte per Te
+
+1. **Priorità track**: Quali tecnologie/linguaggi vuoi aggiungere per PRIMI? (suggerisco Backend Java + DSA, dato che sono i più comuni nei colloqui italiani)
+2. **Company Mode**: Vuoi iniziare con il profilo Auriga? Hai info sulle domande che fanno?
+3. **Voice Mode**: Ti interessa come feature early o è più un nice-to-have?
+4. **Monetizzazione**: Vuoi mantenerlo 100% gratuito e open source, o contempli un modello freemium?
+5. **Community**: Preferisci un forum integrato o un Discord/Telegram collegato?
+6. **Deploy**: Resti su Vercel free tier o consideri un upgrade per le feature server-side?

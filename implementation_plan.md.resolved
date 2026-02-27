@@ -1,0 +1,176 @@
+# Phase 2: Core Value — Piano di Implementazione
+
+Questa fase potenzia TekInterview con le feature che lo rendono unico: esecuzione codice, analytics avanzati, topic mastery dinamica, e la correzione di tutte le parti ancora hardcoded per React/JS rimaste dalla Phase 1.
+
+## User Review Required
+
+> [!IMPORTANT]
+> **Code Execution Sandbox**: Per eseguire codice server-side in modo sicuro servono API esterne. Le opzioni principali sono:
+> - **[Piston API](https://github.com/engineer-man/piston)** — self-hosted (gratuito, più controllo) oppure hosted
+> - **[Judge0](https://judge0.com/)** — SaaS con free-tier (50 req/giorno) oppure self-hosted
+> - **Nessun sandbox per ora** — rimandare a Phase 3 e concentrarsi sulle altre feature
+>
+> Quale preferisci? Il piano assume Piston API (self-host opzionale) ma possiamo adattare.
+
+> [!IMPORTANT]
+> **Knowledge Base**: La visione include 50 schede argomento. Per la Phase 2 propongo di iniziare con un sistema più leggero:
+> - Topics generati **dinamicamente** dalla [tracks-data.ts](file:///c:/Users/kekko/OneDrive/Desktop/Dev/Tek/src/lib/prompts/tracks-data.ts) già esistente
+> - Pagina `/topics` generalizzata per tutte le track (ora è solo React/JS)
+> - Le vere "schede studiabili" con contenuti editoriali le rimandiamo a Phase 3
+>
+> Sei d'accordo con questo approccio incrementale?
+
+> [!IMPORTANT]
+> **Company Mode**: Il piano originale include le prime 10 aziende italiane. Dato che hai detto di volerlo fare "dopo", lo escludo da questa fase. Confermi?
+
+---
+
+## Proposed Changes
+
+### A. Generalizzazione Topic Mastery (Bug Fix da Phase 1)
+
+Il sistema di topic mastery è ancora hardcoded per React/JS in due file critici. Questo va corretto prima di tutto.
+
+#### [MODIFY] [queries.ts](file:///c:/Users/kekko/OneDrive/Desktop/Dev/Tek/src/lib/supabase/queries.ts)
+- Rimuovere il dizionario `VALID_TOPICS` hardcoded (righe 151-163)
+- Generare `VALID_TOPICS` dinamicamente da [tracks-data.ts](file:///c:/Users/kekko/OneDrive/Desktop/Dev/Tek/src/lib/prompts/tracks-data.ts) iterando su tutti i track e tutti i topic
+- La funzione [normalizeTopicName](file:///c:/Users/kekko/OneDrive/Desktop/Dev/Tek/src/lib/supabase/queries.ts#165-168) continuerà a funzionare identicamente
+
+#### [MODIFY] [page.tsx (topics)](file:///c:/Users/kekko/OneDrive/Desktop/Dev/Tek/src/app/topics/page.tsx)
+- Rimuovere `TOPIC_CATEGORIES` hardcoded (React, JS, Next.js, CSS, Testing)
+- Generare le categorie dinamicamente da `TECH_TRACKS` + [tracks-data.ts](file:///c:/Users/kekko/OneDrive/Desktop/Dev/Tek/src/lib/prompts/tracks-data.ts)
+- Aggiungere un filtro per track: l'utente può scegliere quale area tech visualizzare
+- Visualizzare l'icona lucide-react della track accanto al nome categoria
+
+#### [MODIFY] [queries.ts — createSession](file:///c:/Users/kekko/OneDrive/Desktop/Dev/Tek/src/lib/supabase/queries.ts)
+- Aggiungere campo opzionale `track` e `language` a [createSession](file:///c:/Users/kekko/OneDrive/Desktop/Dev/Tek/src/lib/supabase/queries.ts#10-25)
+- Aggiungere campo opzionale `track` a [getUserStats](file:///c:/Users/kekko/OneDrive/Desktop/Dev/Tek/src/lib/supabase/queries.ts#112-137) per filtraggio per track
+
+---
+
+### B. Dashboard Analytics Avanzati
+
+#### [MODIFY] [page.tsx (dashboard)](file:///c:/Users/kekko/OneDrive/Desktop/Dev/Tek/src/app/dashboard/page.tsx)
+- Aggiungere **Activity Heatmap** (stile GitHub contributions) per visualizzare sessioni negli ultimi 90 giorni
+- Aggiungere **Radar Chart** competenze per track (visualizzazione skill breakdown)
+- Aggiungere filtro per track nella dashboard
+- Migliorare le stat card con icone lucide-react
+
+#### [NEW] [ActivityHeatmap.tsx](file:///c:/Users/kekko/OneDrive/Desktop/Dev/Tek/src/components/dashboard/ActivityHeatmap.tsx)
+- Componente heatmap che riceve un array di date → colore proporzionale al numero di sessioni
+- Hover mostra dettaglio (data, numero sessioni, punteggio medio)
+- Layout: griglia 7×13 settimane (~ 90 giorni)
+
+#### [NEW] [SkillRadar.tsx](file:///c:/Users/kekko/OneDrive/Desktop/Dev/Tek/src/components/dashboard/SkillRadar.tsx)
+- Radar chart SVG personalizzato (senza dipendenze esterne come chart.js)
+- Visualizza mastery su 5-6 categorie principali della track selezionata
+- Animato al caricamento
+
+#### [MODIFY] [route.ts (stats)](file:///c:/Users/kekko/OneDrive/Desktop/Dev/Tek/src/app/api/stats/route.ts)
+- Aggiungere campo `daily_activity` alla risposta: array `{ date: string, count: number, avg_score: number }[]`
+- Aggiungere supporto query param `?track=backend` per filtrare stats per track
+
+#### [MODIFY] [queries.ts — getUserStats](file:///c:/Users/kekko/OneDrive/Desktop/Dev/Tek/src/lib/supabase/queries.ts)
+- Calcolare `daily_activity` dagli ultimi 90 giorni di sessioni
+- Supportare filtro opzionale per `track`
+
+---
+
+### C. Code Execution Sandbox
+
+#### [NEW] [route.ts (code/execute)](file:///c:/Users/kekko/OneDrive/Desktop/Dev/Tek/src/app/api/code/execute/route.ts)
+- Proxy API verso Piston/Judge0
+- Accetta `{ language: string, code: string, stdin?: string }`
+- Timeout configurabile (default 10s)
+- Rate limiting basico (max 10 esecuzioni/minuto per utente)
+- Restituisce `{ stdout, stderr, exitCode, executionTime }`
+
+#### [NEW] [code-executor.ts](file:///c:/Users/kekko/OneDrive/Desktop/Dev/Tek/src/lib/code-executor.ts)
+- Client per il servizio di code execution
+- Mapping tra i nostri language ID e quelli di Piston/Judge0
+- Sanitizzazione input e gestione limiti
+
+#### [MODIFY] [CodeEditor.tsx](file:///c:/Users/kekko/OneDrive/Desktop/Dev/Tek/src/components/interview/CodeEditor.tsx)
+- Aggiungere bottone **"▶ Run"** sopra l'editor
+- Output panel sotto l'editor con stdout/stderr formattato
+- Loading state durante l'esecuzione
+- Shortcut keyboard (Ctrl+Enter per eseguire)
+
+#### [MODIFY] [page.tsx (session)](file:///c:/Users/kekko/OneDrive/Desktop/Dev/Tek/src/app/interview/[sessionId]/page.tsx)
+- Integrare il pannello di output del code execution nella vista sessione
+- L'AI interviewer può vedere l'output dell'esecuzione del codice e commentare eventuali errori
+
+---
+
+### D. Export Report PDF
+
+#### [NEW] [route.ts (report/pdf)](file:///c:/Users/kekko/OneDrive/Desktop/Dev/Tek/src/app/api/report/pdf/route.ts)
+- Genera un PDF del report di sessione usando `@react-pdf/renderer` o `jspdf`
+- Include: punteggio, punti di forza/miglioramento, topic valutati, sommario
+- Styling coerente con il brand "Terminal Luxe"
+
+#### [MODIFY] [page.tsx (history/sessionId)](file:///c:/Users/kekko/OneDrive/Desktop/Dev/Tek/src/app/history/[sessionId]/page.tsx)
+- Aggiungere pulsante **"📄 Scarica PDF"** nella pagina di dettaglio sessione
+
+---
+
+### E. DB Schema Updates
+
+#### Schema Supabase — Migrazioni suggerite:
+```sql
+-- Aggiungere track e language alle sessioni esistenti
+ALTER TABLE interview_sessions
+  ADD COLUMN IF NOT EXISTS track TEXT DEFAULT 'frontend',
+  ADD COLUMN IF NOT EXISTS language TEXT DEFAULT 'react';
+
+-- Aggiungere track alla topic_mastery
+ALTER TABLE topic_mastery
+  ADD COLUMN IF NOT EXISTS track TEXT DEFAULT 'frontend';
+```
+
+> [!NOTE]
+> Queste migrazioni sono backward-compatible: i default preservano i dati esistenti.
+
+---
+
+## Riepilogo dei File
+
+| Azione | File | Componente |
+|:--|:--|:--|
+| MODIFY | [queries.ts](file:///c:/Users/kekko/OneDrive/Desktop/Dev/Tek/src/lib/supabase/queries.ts) | Topic Mastery Dinamica + Stats Track Filter |
+| MODIFY | [topics/page.tsx](file:///c:/Users/kekko/OneDrive/Desktop/Dev/Tek/src/app/topics/page.tsx) | Topic Categories Dinamiche |
+| MODIFY | [dashboard/page.tsx](file:///c:/Users/kekko/OneDrive/Desktop/Dev/Tek/src/app/dashboard/page.tsx) | Heatmap + Radar + Filtri Track |
+| NEW | `ActivityHeatmap.tsx` | Componente Heatmap |
+| NEW | `SkillRadar.tsx` | Componente Radar Chart SVG |
+| MODIFY | `api/stats/route.ts` | Daily Activity + Track Filter |
+| NEW | `api/code/execute/route.ts` | Code Execution Proxy |
+| NEW | `lib/code-executor.ts` | Client Code Executor |
+| MODIFY | [CodeEditor.tsx](file:///c:/Users/kekko/OneDrive/Desktop/Dev/Tek/src/components/interview/CodeEditor.tsx) | Run Button + Output Panel |
+| MODIFY | `[sessionId]/page.tsx` | Output Integration |
+| NEW | `api/report/pdf/route.ts` | PDF Generator |
+| MODIFY | `history/[sessionId]/page.tsx` | Download PDF Button |
+
+---
+
+## Verification Plan
+
+### Automated Tests
+- `npm run build` — zero errori TypeScript
+- Test manuale di ogni track nella pagina Topics (verifica che le categorie si aggiornino)
+- Test code execution con snippets semplici in 3-4 linguaggi
+
+### Manual Verification
+- Browser test: Dashboard con heatmap e radar visibili
+- Browser test: Topics page con categorie dinamiche per almeno 3 track
+- Browser test: Code Editor → Run → output corretto
+- Browser test: Download PDF da history session detail
+
+---
+
+## Ordine di Implementazione Suggerito
+
+1. **A. Topic Mastery Dinamica** — fix critico, bassa complessità
+2. **B. Dashboard Analytics** — alto impatto visivo
+3. **C. Code Execution** — la feature più complessa, dipende da scelta API
+4. **D. Export PDF** — indipendente, può essere fatto in parallelo
+5. **E. Schema DB** — migrazione da eseguire prima di B e C

@@ -3,7 +3,9 @@ import type {
   InterviewType,
   Difficulty,
   SessionStatus,
+  TechTrack,
 } from "@/types";
+import { TRACK_PROMPT_DATA } from "@/lib/prompts/tracks-data";
 
 // ── Sessions ──
 
@@ -12,6 +14,8 @@ export async function createSession(data: {
   user_id: string;
   type: InterviewType;
   difficulty: Difficulty;
+  track?: TechTrack;
+  language?: string;
 }) {
   const supabase = createAdminClient();
   const { data: session, error } = await supabase
@@ -109,16 +113,50 @@ export async function getSessionMessages(sessionId: string) {
 
 // ── Stats ──
 
-export async function getUserStats(userId: string) {
+export async function getUserStats(userId: string, track?: string) {
   const supabase = createAdminClient();
-  const { data: sessions, error } = await supabase
+
+  let query = supabase
     .from("interview_sessions")
-    .select("score, status, started_at, type")
+    .select("score, status, started_at, type, track")
     .eq("user_id", userId);
+
+  if (track) {
+    query = query.eq("track", track);
+  }
+
+  const { data: sessions, error } = await query;
   if (error) throw error;
 
   const completed = (sessions ?? []).filter((s) => s.status === "completed");
   const scores = completed.filter((s) => s.score != null).map((s) => s.score as number);
+
+  // Compute daily_activity for last 180 days
+  const dailyMap = new Map<string, { count: number; totalScore: number; scored: number }>();
+  const now = new Date();
+  for (let i = 0; i < 182; i++) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    dailyMap.set(d.toISOString().split("T")[0], { count: 0, totalScore: 0, scored: 0 });
+  }
+  for (const s of completed) {
+    const dateKey = s.started_at?.split("T")[0];
+    if (dateKey && dailyMap.has(dateKey)) {
+      const entry = dailyMap.get(dateKey)!;
+      entry.count++;
+      if (s.score != null) {
+        entry.totalScore += s.score;
+        entry.scored++;
+      }
+    }
+  }
+  const daily_activity = Array.from(dailyMap.entries())
+    .map(([date, info]) => ({
+      date,
+      count: info.count,
+      avg_score: info.scored > 0 ? Math.round(info.totalScore / info.scored) : 0,
+    }))
+    .sort((a, b) => a.date.localeCompare(b.date));
 
   return {
     total_sessions: completed.length,
@@ -132,6 +170,7 @@ export async function getUserStats(userId: string) {
       },
       {} as Record<string, number>
     ),
+    daily_activity,
   };
 }
 
@@ -148,19 +187,15 @@ export async function getUserTopics(userId: string) {
   return data ?? [];
 }
 
-const VALID_TOPICS: Record<string, string> = {
-  "hooks": "Hooks", "state management": "State Management", "component patterns": "Component Patterns",
-  "performance": "Performance", "context api": "Context API", "server components": "Server Components",
-  "closures": "Closures", "promises & async": "Promises & Async", "promises and async": "Promises & Async",
-  "prototypes": "Prototypes", "es6+": "ES6+", "es6": "ES6+", "event loop": "Event Loop",
-  "type coercion": "Type Coercion", "app router": "App Router", "server actions": "Server Actions",
-  "middleware": "Middleware", "ssr/ssg/isr": "SSR/SSG/ISR", "ssr": "SSR/SSG/ISR", "ssg": "SSR/SSG/ISR",
-  "api routes": "API Routes", "caching": "Caching", "flexbox": "Flexbox", "grid": "Grid",
-  "responsive design": "Responsive Design", "animations": "Animations", "tailwind": "Tailwind",
-  "css-in-js": "CSS-in-JS", "unit testing": "Unit Testing", "react testing library": "React Testing Library",
-  "e2e (playwright)": "E2E (Playwright)", "e2e": "E2E (Playwright)", "playwright": "E2E (Playwright)",
-  "mocking": "Mocking", "test patterns": "Test Patterns",
-};
+// Build VALID_TOPICS dynamically from all tech tracks
+const VALID_TOPICS: Record<string, string> = {};
+for (const trackData of Object.values(TRACK_PROMPT_DATA)) {
+  for (const topicNames of Object.values(trackData.topics)) {
+    for (const topic of topicNames) {
+      VALID_TOPICS[topic.toLowerCase()] = topic;
+    }
+  }
+}
 
 function normalizeTopicName(name: string): string {
   return VALID_TOPICS[name.toLowerCase()] || name;

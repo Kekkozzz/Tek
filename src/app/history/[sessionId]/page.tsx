@@ -7,6 +7,7 @@ import Navbar from "@/components/layout/Navbar";
 import MessageBubble from "@/components/interview/MessageBubble";
 import { INTERVIEW_TYPES } from "@/types";
 import type { InterviewType, MessageRole } from "@/types";
+import { FileDown } from "lucide-react";
 
 interface SessionData {
   id: string;
@@ -122,6 +123,17 @@ export default function SessionReviewPage() {
               </div>
             </div>
             <div className="ml-auto flex items-center gap-3">
+              {session.score != null && (
+                <a
+                  href={`/api/report/${session.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-lg bg-bg-elevated border border-border px-4 py-2.5 font-mono text-xs font-semibold text-text-secondary transition-all hover:border-accent/30 hover:text-accent"
+                >
+                  <FileDown className="h-4 w-4" />
+                  Scarica Report
+                </a>
+              )}
               {session.status !== "completed" && (
                 <Link
                   href={`/interview/${session.id}?type=${session.type}&difficulty=${session.difficulty}`}
@@ -148,21 +160,19 @@ export default function SessionReviewPage() {
         <div className="mt-8 flex gap-2 border-b border-border">
           <button
             onClick={() => setTab("report")}
-            className={`cursor-pointer px-4 py-3 font-mono text-sm transition-all border-b-2 ${
-              tab === "report"
+            className={`cursor-pointer px-4 py-3 font-mono text-sm transition-all border-b-2 ${tab === "report"
                 ? "text-accent border-accent"
                 : "text-text-secondary border-transparent hover:text-text-primary"
-            }`}
+              }`}
           >
             Report
           </button>
           <button
             onClick={() => setTab("chat")}
-            className={`cursor-pointer px-4 py-3 font-mono text-sm transition-all border-b-2 ${
-              tab === "chat"
+            className={`cursor-pointer px-4 py-3 font-mono text-sm transition-all border-b-2 ${tab === "chat"
                 ? "text-accent border-accent"
                 : "text-text-secondary border-transparent hover:text-text-primary"
-            }`}
+              }`}
           >
             Conversazione ({messages.length})
           </button>
