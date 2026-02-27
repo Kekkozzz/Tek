@@ -105,17 +105,15 @@ export async function POST(request: Request) {
                 controller.enqueue(new TextEncoder().encode(text));
               }
             }
-            // Save assistant message to Supabase
-            if (sessionId && fullResponse) {
-              saveMessage({
-                session_id: sessionId,
-                role: "assistant",
-                content: fullResponse,
-              }).catch((e) => console.error("Failed to save assistant message:", e));
-            }
             controller.close();
           } catch (error) {
             controller.error(error);
+          } finally {
+            // Always persist the assistant message, even if stream was aborted
+            if (sessionId && fullResponse) {
+              try { await saveMessage({ session_id: sessionId, role: "assistant", content: fullResponse }); }
+              catch (e) { console.error("Failed to save assistant message:", e); }
+            }
           }
         },
       });
@@ -159,17 +157,15 @@ export async function POST(request: Request) {
               controller.enqueue(new TextEncoder().encode(text));
             }
           }
-          // Save assistant message to Supabase
-          if (sessionId && fullResponse) {
-            saveMessage({
-              session_id: sessionId,
-              role: "assistant",
-              content: fullResponse,
-            }).catch((e) => console.error("Failed to save assistant message:", e));
-          }
           controller.close();
         } catch (error) {
           controller.error(error);
+        } finally {
+          // Always persist the assistant message, even if stream was aborted
+          if (sessionId && fullResponse) {
+            try { await saveMessage({ session_id: sessionId, role: "assistant", content: fullResponse }); }
+            catch (e) { console.error("Failed to save assistant message:", e); }
+          }
         }
       },
     });

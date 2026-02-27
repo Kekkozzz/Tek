@@ -21,6 +21,7 @@ export default function InterviewSessionPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [sessionStarted, setSessionStarted] = useState(false);
   const [sessionEnded, setSessionEnded] = useState(false);
+  const [isEnding, setIsEnding] = useState(false);
   const [isRestoring, setIsRestoring] = useState(true);
   const [report, setReport] = useState<{
     score: number;
@@ -30,6 +31,7 @@ export default function InterviewSessionPage() {
   } | null>(null);
   const sessionCreatedRef = useRef(false);
   const startTimeRef = useRef<number>(Date.now());
+  const abortRef = useRef<AbortController | null>(null);
 
   // Restore session from Supabase on mount
   useEffect(() => {
@@ -108,10 +110,14 @@ export default function InterviewSessionPage() {
       setMessages((prev) => [...prev, userMsg]);
       setIsLoading(true);
 
+      const controller = new AbortController();
+      abortRef.current = controller;
+
       try {
         const response = await fetch("/api/interview/message", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
           body: JSON.stringify({
             messages: [...messages, userMsg].map((m) => ({
               role: m.role,
@@ -154,6 +160,8 @@ export default function InterviewSessionPage() {
           }
         }
       } catch (error) {
+        // Ignore abort errors (triggered by endSession)
+        if (error instanceof DOMException && error.name === "AbortError") return;
         console.error("Error sending message:", error);
         const errorMsg: ChatMessage = {
           id: crypto.randomUUID(),
@@ -163,6 +171,7 @@ export default function InterviewSessionPage() {
         };
         setMessages((prev) => [...prev, errorMsg]);
       } finally {
+        abortRef.current = null;
         setIsLoading(false);
       }
     },
@@ -174,12 +183,16 @@ export default function InterviewSessionPage() {
     setIsLoading(true);
     startTimeRef.current = Date.now();
 
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     await ensureSessionCreated();
 
     try {
       const response = await fetch("/api/interview/message", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
         body: JSON.stringify({
           messages: [],
           type,
@@ -213,16 +226,24 @@ export default function InterviewSessionPage() {
         }
       }
     } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
       console.error("Error starting session:", error);
     } finally {
+      abortRef.current = null;
       setIsLoading(false);
     }
   }, [type, difficulty, sessionId, ensureSessionCreated]);
 
   const endSession = useCallback(async () => {
-    if (messages.length < 2) return;
+    if (messages.length < 2 || isEnding) return;
+
+    // Abort any active message stream
+    abortRef.current?.abort();
+    abortRef.current = null;
+
     setSessionEnded(true);
-    setIsLoading(true);
+    setIsEnding(true);
+    setIsLoading(false);
 
     const durationSeconds = Math.round((Date.now() - startTimeRef.current) / 1000);
 
@@ -247,9 +268,9 @@ export default function InterviewSessionPage() {
     } catch (error) {
       console.error("Error ending session:", error);
     } finally {
-      setIsLoading(false);
+      setIsEnding(false);
     }
-  }, [messages, sessionId]);
+  }, [messages, sessionId, isEnding]);
 
   // Loading state while restoring
   if (isRestoring) {
@@ -306,6 +327,21 @@ export default function InterviewSessionPage() {
                 />
               </svg>
             </button>
+          </div>
+        </main>
+      </>
+    );
+  }
+
+  // Generating report screen
+  if (sessionEnded && !report) {
+    return (
+      <>
+        <Navbar />
+        <main className="flex min-h-[calc(100vh-64px)] items-center justify-center">
+          <div className="text-center animate-fade-up">
+            <div className="mx-auto mb-4 h-8 w-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+            <p className="font-mono text-sm text-text-secondary">Generazione report in corso...</p>
           </div>
         </main>
       </>

@@ -5,6 +5,17 @@ import { getAuthenticatedUser } from "@/lib/supabase/server";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
+const REPORT_TIMEOUT_MS = 60_000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`${label}: timeout after ${ms}ms`)), ms)
+    ),
+  ]);
+}
+
 export async function POST(request: Request) {
   try {
     const user = await getAuthenticatedUser();
@@ -37,7 +48,11 @@ export async function POST(request: Request) {
       model: "gemini-3-flash-preview",
     });
 
-    const result = await model.generateContent(reportPrompt);
+    const result = await withTimeout(
+      model.generateContent(reportPrompt),
+      REPORT_TIMEOUT_MS,
+      "generateReport"
+    );
     const responseText = result.response.text();
 
     // Parse JSON from the response (handle potential markdown code blocks)

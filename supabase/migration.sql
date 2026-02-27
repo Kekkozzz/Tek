@@ -50,11 +50,37 @@ CREATE INDEX IF NOT EXISTS idx_messages_session_id ON messages(session_id);
 CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at);
 CREATE INDEX IF NOT EXISTS idx_topic_mastery_user_id ON topic_mastery(user_id);
 
--- RLS - permissive policies for now (replace with proper auth later)
+-- RLS
 ALTER TABLE interview_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE topic_mastery ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow all on interview_sessions" ON interview_sessions FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow all on messages" ON messages FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow all on topic_mastery" ON topic_mastery FOR ALL USING (true) WITH CHECK (true);
+-- Users can only access their own sessions
+CREATE POLICY "Users manage own sessions"
+  ON interview_sessions FOR ALL
+  USING (auth.uid()::text = user_id)
+  WITH CHECK (auth.uid()::text = user_id);
+
+-- Users can only access messages belonging to their sessions
+CREATE POLICY "Users manage own messages"
+  ON messages FOR ALL
+  USING (
+    EXISTS (
+      SELECT 1 FROM interview_sessions
+      WHERE interview_sessions.id = messages.session_id
+        AND interview_sessions.user_id = auth.uid()::text
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM interview_sessions
+      WHERE interview_sessions.id = messages.session_id
+        AND interview_sessions.user_id = auth.uid()::text
+    )
+  );
+
+-- Users can only access their own topic mastery
+CREATE POLICY "Users manage own topics"
+  ON topic_mastery FOR ALL
+  USING (auth.uid()::text = user_id)
+  WITH CHECK (auth.uid()::text = user_id);
