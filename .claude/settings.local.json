@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build)",
+      "mcp__plugin_prompts_chat_prompts_chat__improve_prompt"
+    ]
+  }
+}
+
