@@ -115,7 +115,7 @@ export default function TopicsPage() {
               Mappa delle competenze
             </h1>
             <p className="mt-3 text-text-secondary">
-              Traccia la tua padronanza su ogni argomento tecnico.
+              Completa i colloqui per sbloccare la tua mappa di padronanza.
             </p>
           </div>
 
@@ -174,40 +174,67 @@ export default function TopicsPage() {
             <p className="text-text-secondary">Errore nel caricamento dei dati. Riprova più tardi.</p>
           </div>
         ) : (
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 relative z-0">
-            {categories.map((category, i) => (
-              <div
-                key={`${selectedTrack}-${category.name}`}
-                className="animate-fade-up rounded-xl border border-border bg-bg-secondary p-6 transition-all duration-300 hover:border-accent/20 hover:bg-bg-elevated"
-                style={{ animationDelay: `${i * 0.05}s` }}
-              >
-                <h2 className="font-display text-xl font-semibold text-text-primary mb-4">
-                  {category.name}
-                </h2>
-                <div className="space-y-3">
-                  {category.topics.map((topic) => {
-                    const data = findTopicData(topic);
-                    const level = data?.mastery_level ?? 0;
-                    return (
-                      <div key={topic} className="flex items-center justify-between">
-                        <span className="text-sm text-text-secondary">{topic}</span>
-                        <div className="flex items-center gap-2">
-                          <div className="h-1.5 w-16 rounded-full bg-bg-elevated overflow-hidden">
-                            <div
-                              className={`h-full rounded-full ${getMasteryColor(level)} transition-all duration-700`}
-                              style={{ width: `${level}%` }}
-                            />
-                          </div>
-                          <span className="font-mono text-xs text-text-muted w-10 text-right">
-                            {level > 0 ? getMasteryLabel(level) : "--"}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
+          <div className="mt-10 relative z-0">
+            {/* Info banner when no mastery data exists */}
+            {topicData.length === 0 && (
+              <div className="mb-6 rounded-xl border border-accent/20 bg-accent/5 p-5 flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10">
+                  <span className="font-mono text-lg text-accent">?</span>
+                </div>
+                <div>
+                  <p className="font-semibold text-text-primary">Nessun dato di padronanza ancora</p>
+                  <p className="mt-1 text-sm text-text-secondary">
+                    Completa almeno una sessione di colloquio e le barre di progresso si popoleranno automaticamente in base alle tue performance.
+                  </p>
+                  <Link
+                    href={`/interview?track=${selectedTrack}`}
+                    className="mt-3 inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 font-mono text-xs font-semibold uppercase tracking-wide text-bg-primary transition-all hover:brightness-110 glow-border"
+                  >
+                    Inizia un Colloquio {trackConfig.label}
+                  </Link>
                 </div>
               </div>
-            ))}
+            )}
+
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {categories.map((category, i) => (
+                <div
+                  key={`${selectedTrack}-${category.name}`}
+                  className="animate-fade-up rounded-xl border border-border bg-bg-secondary p-6 transition-all duration-300 hover:border-accent/20 hover:bg-bg-elevated"
+                  style={{ animationDelay: `${i * 0.05}s` }}
+                >
+                  <h2 className="font-display text-xl font-semibold text-text-primary mb-4">
+                    {category.name}
+                  </h2>
+                  <div className="space-y-3">
+                    {category.topics.map((topic) => {
+                      const data = findTopicData(topic);
+                      const level = data?.mastery_level ?? 0;
+                      return (
+                        <Link
+                          key={topic}
+                          href={`/learn/${selectedTrack}/${encodeURIComponent(topic)}`}
+                          className="flex items-center justify-between group hover:bg-accent/5 -mx-2 px-2 py-1 rounded-lg transition-colors"
+                        >
+                          <span className="text-sm text-text-secondary group-hover:text-text-primary transition-colors">{topic}</span>
+                          <div className="flex items-center gap-2">
+                            <div className="h-1.5 w-16 rounded-full bg-bg-elevated overflow-hidden">
+                              <div
+                                className={`h-full rounded-full ${getMasteryColor(level)} transition-all duration-700`}
+                                style={{ width: `${level}%` }}
+                              />
+                            </div>
+                            <span className="font-mono text-xs text-text-muted w-10 text-right">
+                              {level > 0 ? getMasteryLabel(level) : "--"}
+                            </span>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </main>

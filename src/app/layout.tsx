@@ -16,10 +16,16 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+const SITE_URL = "https://tek-three.vercel.app";
+
 export const metadata: Metadata = {
-  title: "TekInterview — Supera il Colloquio Tecnico con l'AI",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "TekInterview — Supera il Colloquio Tecnico con l'AI",
+    template: "%s | TekInterview",
+  },
   description:
-    "La piattaforma italiana per prepararti ai colloqui tecnici. Simulazioni AI per Frontend, Backend, Mobile, DevOps, Data, Database, Cybersecurity, Algoritmi, System Design e Low-Level.",
+    "Preparati ai colloqui tecnici con un intervistatore AI. 10 aree tech, code editor live, report dettagliati. Gratis.",
   keywords: [
     "colloquio tecnico",
     "mock interview",
@@ -37,11 +43,30 @@ export const metadata: Metadata = {
     "preparazione colloquio",
     "tech interview Italia",
   ],
+  authors: [{ name: "TekInterview" }],
   openGraph: {
     title: "TekInterview — Supera il Colloquio Tecnico con l'AI",
     description:
-      "Simulazioni realistiche di colloquio tecnico AI-powered. 10 aree tech, 50+ linguaggi, report dettagliati.",
+      "Un intervistatore AI ti sfida con domande reali, analizza il tuo codice e ti dice dove migliorare. 10 aree tech, gratis.",
+    url: SITE_URL,
+    siteName: "TekInterview",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1024,
+        height: 1024,
+        alt: "TekInterview — Simulazione Colloqui Tecnici con AI",
+      },
+    ],
+    locale: "it_IT",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "TekInterview — Supera il Colloquio Tecnico con l'AI",
+    description:
+      "Un intervistatore AI ti sfida con domande reali. 10 aree tech, code editor live, report dettagliati. Gratis.",
+    images: ["/og-image.png"],
   },
   robots: "index, follow",
 };
