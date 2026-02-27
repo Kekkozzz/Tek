@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 
 interface TopicData {
@@ -92,14 +93,25 @@ function getMasteryLabel(level: number): string {
 export default function TopicsPage() {
   const [topicData, setTopicData] = useState<TopicData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
       try {
         const res = await fetch("/api/topics");
-        if (res.ok) setTopicData(await res.json());
+        if (res.status === 401) {
+          setError("login");
+          return;
+        }
+        if (!res.ok) {
+          setError("server");
+          return;
+        }
+        const data = await res.json();
+        setTopicData(Array.isArray(data) ? data : []);
       } catch (e) {
         console.error("Failed to load topics:", e);
+        setError("network");
       } finally {
         setLoading(false);
       }
@@ -137,6 +149,25 @@ export default function TopicsPage() {
         {loading ? (
           <div className="mt-16 flex justify-center">
             <div className="h-8 w-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : error === "login" ? (
+          <div className="mt-16 text-center">
+            <p className="text-text-secondary mb-4">Effettua il login per vedere i tuoi progressi.</p>
+            <Link href="/login" className="inline-flex items-center gap-2 rounded-lg bg-accent/10 border border-accent/20 px-6 py-3 font-mono text-sm text-accent hover:bg-accent/20 transition-colors">
+              Accedi
+            </Link>
+          </div>
+        ) : error ? (
+          <div className="mt-16 text-center">
+            <p className="text-text-secondary">Errore nel caricamento dei dati. Riprova più tardi.</p>
+          </div>
+        ) : topicData.length === 0 ? (
+          <div className="mt-16 text-center">
+            <p className="text-text-secondary mb-2">Nessun dato disponibile.</p>
+            <p className="text-sm text-text-muted">Completa almeno una sessione di intervista per vedere i tuoi progressi qui.</p>
+            <Link href="/interview" className="mt-4 inline-flex items-center gap-2 rounded-lg bg-accent/10 border border-accent/20 px-6 py-3 font-mono text-sm text-accent hover:bg-accent/20 transition-colors">
+              Inizia un&apos;intervista
+            </Link>
           </div>
         ) : (
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

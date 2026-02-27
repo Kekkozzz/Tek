@@ -91,14 +91,23 @@ export async function POST(request: Request) {
 
         // Update topic mastery if we have topics and a userId
         if (user.id && report.topics_evaluated?.length) {
-          // topics_evaluated can be objects {topic, category, score} or strings
-          const topicScores = report.topics_evaluated.map((t: { topic: string; category: string; score: number } | string) => {
-            if (typeof t === "string") {
-              return { topic: t, category: "General", score: report.score };
+          try {
+            // topics_evaluated can be objects {topic, category, score} or strings
+            const topicScores = report.topics_evaluated.map((t: { topic?: string; name?: string; category?: string; score?: number } | string) => {
+              if (typeof t === "string") {
+                return { topic: t, category: "General", score: report.score };
+              }
+              const topicName = t.topic || t.name || "Unknown";
+              return { topic: topicName, category: t.category || "General", score: t.score ?? report.score };
+            }).filter((t: { topic: string }) => t.topic !== "Unknown");
+            
+            if (topicScores.length > 0) {
+              await upsertTopicMastery(user.id, topicScores);
+              console.log(`Saved ${topicScores.length} topic mastery entries for user ${user.id}`);
             }
-            return { topic: t.topic, category: t.category || "General", score: t.score ?? report.score };
-          });
-          await upsertTopicMastery(user.id, topicScores);
+          } catch (topicError) {
+            console.error("Failed to save topic mastery:", topicError);
+          }
         }
       } catch (e) {
         console.error("Failed to save report to Supabase:", e);
