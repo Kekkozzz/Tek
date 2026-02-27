@@ -2,6 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { buildReportPrompt } from "@/lib/prompts/report";
 import { updateSession, upsertTopicMastery } from "@/lib/supabase/queries";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
+import type { TechTrack } from "@/types";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
@@ -26,10 +27,14 @@ export async function POST(request: Request) {
     const body = await request.json();
     const {
       messages,
+      track,
+      language,
       sessionId,
       durationSeconds,
     }: {
       messages: { role: string; content: string }[];
+      track?: TechTrack;
+      language?: string;
       sessionId?: string;
       durationSeconds?: number;
     } = body;
@@ -42,7 +47,11 @@ export async function POST(request: Request) {
       })
       .join("\n\n");
 
-    const reportPrompt = buildReportPrompt(formattedMessages);
+    const reportPrompt = buildReportPrompt({
+      messages: formattedMessages,
+      track: track || "frontend",
+      language: language || "react",
+    });
 
     const model = genAI.getGenerativeModel({
       model: "gemini-3-flash-preview",
@@ -100,7 +109,7 @@ export async function POST(request: Request) {
               const topicName = t.topic || t.name || "Unknown";
               return { topic: topicName, category: t.category || "General", score: t.score ?? report.score };
             }).filter((t: { topic: string }) => t.topic !== "Unknown");
-            
+
             if (topicScores.length > 0) {
               await upsertTopicMastery(user.id, topicScores);
               console.log(`Saved ${topicScores.length} topic mastery entries for user ${user.id}`);

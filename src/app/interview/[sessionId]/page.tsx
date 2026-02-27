@@ -5,15 +5,21 @@ import { useParams, useSearchParams } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import ChatPanel, { type ChatMessage } from "@/components/interview/ChatPanel";
 import CodeEditor from "@/components/interview/CodeEditor";
-import type { InterviewType, Difficulty } from "@/types";
+import type { InterviewType, Difficulty, TechTrack } from "@/types";
+import { TECH_TRACKS, INTERVIEW_TYPES } from "@/types";
 
 export default function InterviewSessionPage() {
   const params = useParams();
   const sessionId = params.sessionId as string;
   const searchParams = useSearchParams();
-  const type = (searchParams.get("type") as InterviewType) || "react";
-  const difficulty =
-    (searchParams.get("difficulty") as Difficulty) || "mid";
+  const track = (searchParams.get("track") as TechTrack) || "frontend";
+  const type = (searchParams.get("type") as InterviewType) || "theory";
+  const difficulty = (searchParams.get("difficulty") as Difficulty) || "mid";
+  const language = searchParams.get("lang") || TECH_TRACKS[track].languages[0]?.id || "react";
+
+  // Resolve Monaco editor language from track data
+  const monacoLanguage = TECH_TRACKS[track].languages.find((l) => l.id === language)?.monacoId || "javascript";
+  const langLabel = TECH_TRACKS[track].languages.find((l) => l.id === language)?.label || language;
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [code, setCode] = useState<string>(
     "// Scrivi il tuo codice qui...\n"
@@ -86,15 +92,17 @@ export default function InterviewSessionPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: sessionId,
+          track,
           type,
           difficulty,
+          language,
         }),
       });
     } catch (e) {
       console.error("Failed to create session:", e);
       sessionCreatedRef.current = false;
     }
-  }, [sessionId, type, difficulty]);
+  }, [sessionId, track, type, difficulty, language]);
 
   const sendMessage = useCallback(
     async (userMessage: string) => {
@@ -123,8 +131,10 @@ export default function InterviewSessionPage() {
               role: m.role,
               content: m.content,
             })),
+            track,
             type,
             difficulty,
+            language,
             currentCode: code,
             sessionId,
           }),
@@ -175,7 +185,7 @@ export default function InterviewSessionPage() {
         setIsLoading(false);
       }
     },
-    [messages, code, type, difficulty, isLoading, sessionId]
+    [messages, code, track, type, difficulty, language, isLoading, sessionId]
   );
 
   const startSession = useCallback(async () => {
@@ -195,8 +205,10 @@ export default function InterviewSessionPage() {
         signal: controller.signal,
         body: JSON.stringify({
           messages: [],
+          track,
           type,
           difficulty,
+          language,
           currentCode: "",
           sessionId,
         }),
@@ -232,7 +244,7 @@ export default function InterviewSessionPage() {
       abortRef.current = null;
       setIsLoading(false);
     }
-  }, [type, difficulty, sessionId, ensureSessionCreated]);
+  }, [track, type, difficulty, language, sessionId, ensureSessionCreated]);
 
   const endSession = useCallback(async () => {
     if (messages.length < 2 || isEnding) return;
@@ -256,6 +268,8 @@ export default function InterviewSessionPage() {
             role: m.role,
             content: m.content,
           })),
+          track,
+          language,
           sessionId,
           durationSeconds,
         }),
@@ -301,12 +315,13 @@ export default function InterviewSessionPage() {
               Pronto per il colloquio?
             </h1>
             <p className="mt-3 text-text-secondary max-w-md mx-auto">
-              Tipo:{" "}
-              <span className="text-accent font-mono text-sm">{type}</span>
-              {" · "}Difficolta:{" "}
-              <span className="text-indigo font-mono text-sm">
-                {difficulty}
-              </span>
+              <span className="text-accent font-mono text-sm">{TECH_TRACKS[track].label}</span>
+              {" · "}
+              <span className="text-text-primary font-mono text-sm">{INTERVIEW_TYPES[type]?.label || type}</span>
+              {" · "}
+              <span className="text-indigo font-mono text-sm">{langLabel}</span>
+              {" · "}
+              <span className="text-text-muted font-mono text-sm">{difficulty}</span>
             </p>
             <button
               onClick={startSession}
@@ -450,7 +465,7 @@ export default function InterviewSessionPage() {
 
         {/* Code Editor */}
         <div className="flex flex-col bg-bg-primary h-1/2 md:h-auto md:w-1/2">
-          <CodeEditor code={code} onChange={setCode} />
+          <CodeEditor code={code} onChange={setCode} language={monacoLanguage} />
         </div>
       </div>
     </div>

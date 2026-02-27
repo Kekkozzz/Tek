@@ -17,13 +17,30 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TekInterview — AI Mock Interview",
+  title: "TekInterview — Supera il Colloquio Tecnico con l'AI",
   description:
-    "Preparati ai colloqui tecnici frontend con simulazioni di intervista AI-powered. React, Next.js, TypeScript.",
-  keywords: ["interview", "mock interview", "frontend", "React", "Next.js", "TypeScript", "AI", "coding interview"],
+    "La piattaforma italiana per prepararti ai colloqui tecnici. Simulazioni AI per Frontend, Backend, Mobile, DevOps, Data, Database, Cybersecurity, Algoritmi, System Design e Low-Level.",
+  keywords: [
+    "colloquio tecnico",
+    "mock interview",
+    "intervista tecnica",
+    "coding interview",
+    "AI interview",
+    "React",
+    "Java",
+    "Python",
+    "JavaScript",
+    "TypeScript",
+    "System Design",
+    "DevOps",
+    "algoritmi",
+    "preparazione colloquio",
+    "tech interview Italia",
+  ],
   openGraph: {
-    title: "TekInterview — AI Mock Interview",
-    description: "Simulazioni di colloquio tecnico AI-powered per sviluppatori frontend.",
+    title: "TekInterview — Supera il Colloquio Tecnico con l'AI",
+    description:
+      "Simulazioni realistiche di colloquio tecnico AI-powered. 10 aree tech, 50+ linguaggi, report dettagliati.",
     type: "website",
   },
   robots: "index, follow",

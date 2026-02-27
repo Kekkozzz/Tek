@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { buildInterviewerPrompt } from "@/lib/prompts/interviewer";
 import { saveMessage } from "@/lib/supabase/queries";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
-import type { InterviewType, Difficulty } from "@/types";
+import type { InterviewType, Difficulty, TechTrack } from "@/types";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
@@ -42,14 +42,18 @@ export async function POST(request: Request) {
     const body = await request.json();
     const {
       messages,
+      track,
       type,
       difficulty,
+      language,
       currentCode,
       sessionId,
     }: {
       messages: { role: string; content: string }[];
+      track: TechTrack;
       type: InterviewType;
       difficulty: Difficulty;
+      language: string;
       currentCode: string;
       sessionId?: string;
     } = body;
@@ -68,8 +72,10 @@ export async function POST(request: Request) {
     }
 
     const systemPrompt = buildInterviewerPrompt({
+      track: track || "frontend",
       type,
       difficulty,
+      language: language || "react",
       currentCode: currentCode || undefined,
     });
 
