@@ -43,10 +43,10 @@ export default function LearnPage() {
                             Knowledge Base
                         </span>
                         <h1 className="mt-2 font-display text-4xl font-bold tracking-tight">
-                            Impara
+                            Studia prima, rispondi meglio
                         </h1>
                         <p className="mt-3 text-text-secondary">
-                            Schede formative generate dall&apos;AI per prepararti al colloquio tecnico.
+                            Schede generate dall&apos;AI su ogni argomento. Per arrivare preparato.
                         </p>
                     </div>
 

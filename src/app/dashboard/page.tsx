@@ -103,10 +103,10 @@ export default function DashboardPage() {
               Dashboard
             </span>
             <h1 className="mt-2 font-display text-4xl font-bold tracking-tight">
-              I tuoi progressi
+              Come stai andando
             </h1>
             <p className="mt-3 text-text-secondary">
-              Panoramica delle tue sessioni di colloquio e aree di miglioramento.
+              Il tuo percorso di crescita, sessione dopo sessione.
             </p>
           </div>
 

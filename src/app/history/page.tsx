@@ -59,7 +59,7 @@ export default function HistoryPage() {
             Le tue sessioni
           </h1>
           <p className="mt-3 text-text-secondary">
-            Rivedi le interviste passate e i feedback ricevuti.
+            Ogni sessione è un passo avanti. Rivedi i feedback e monitora i tuoi progressi.
           </p>
         </div>
 
@@ -69,11 +69,10 @@ export default function HistoryPage() {
             <button
               key={f}
               onClick={() => { setLoading(true); setFilter(f); }}
-              className={`cursor-pointer px-4 py-2 rounded-lg font-mono text-xs uppercase tracking-wide transition-all ${
-                filter === f
+              className={`cursor-pointer px-4 py-2 rounded-lg font-mono text-xs uppercase tracking-wide transition-all ${filter === f
                   ? "bg-accent/10 text-accent border border-accent/20"
                   : "text-text-secondary hover:text-text-primary hover:bg-bg-elevated border border-transparent"
-              }`}
+                }`}
             >
               {f === "all" ? "Tutte" : f === "completed" ? "Completate" : f === "active" ? "Attive" : "Abbandonate"}
             </button>
@@ -90,16 +89,16 @@ export default function HistoryPage() {
               <span className="font-mono text-2xl text-text-muted">0</span>
             </div>
             <h3 className="font-display text-lg font-semibold text-text-primary">
-              Nessuna sessione trovata
+              Il primo colloquio è il più importante
             </h3>
             <p className="mt-2 max-w-sm text-sm text-text-secondary">
-              Completa la tua prima simulazione di colloquio per vederla qui.
+              Inizia una simulazione e scopri a che punto sei. I risultati appariranno qui.
             </p>
             <Link
               href="/interview"
               className="mt-6 inline-flex items-center gap-2 rounded-lg bg-accent px-6 py-2.5 font-mono text-sm font-semibold uppercase tracking-wide text-bg-primary transition-all hover:brightness-110 glow-border"
             >
-              Inizia Intervista
+              Fai il Primo Colloquio
             </Link>
           </div>
         ) : (
@@ -127,13 +126,12 @@ export default function HistoryPage() {
                         <span className="rounded bg-bg-elevated px-2 py-0.5 font-mono text-[10px] text-text-muted border border-border">
                           {session.difficulty}
                         </span>
-                        <span className={`rounded px-2 py-0.5 font-mono text-[10px] ${
-                          session.status === "completed"
+                        <span className={`rounded px-2 py-0.5 font-mono text-[10px] ${session.status === "completed"
                             ? "bg-accent/10 text-accent border border-accent/20"
                             : session.status === "active"
-                            ? "bg-indigo/10 text-indigo border border-indigo/20"
-                            : "bg-warning/10 text-warning border border-warning/20"
-                        }`}>
+                              ? "bg-indigo/10 text-indigo border border-indigo/20"
+                              : "bg-warning/10 text-warning border border-warning/20"
+                          }`}>
                           {session.status === "completed" ? "completata" : session.status === "active" ? "attiva" : "abbandonata"}
                         </span>
                       </div>

@@ -7,8 +7,8 @@ import { useAuth } from "@/hooks/useAuth";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard" },
-  { href: "/interview", label: "Intervista" },
-  { href: "/learn", label: "Impara" },
+  { href: "/interview", label: "Esercitati" },
+  { href: "/learn", label: "Studia" },
   { href: "/history", label: "Cronologia" },
   { href: "/topics", label: "Argomenti" },
 ];

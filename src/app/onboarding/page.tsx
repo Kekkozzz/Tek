@@ -17,9 +17,9 @@ const TRACK_ICONS: Record<string, LucideIcon> = {
 };
 
 const GOALS = [
-    { id: "interview", label: "Superare un colloquio", icon: Target, desc: "Mi sto preparando per un colloquio specifico" },
-    { id: "improve", label: "Migliorare le competenze", icon: GraduationCap, desc: "Voglio rafforzare le mie skills tecniche" },
-    { id: "explore", label: "Esplorare nuove aree", icon: Briefcase, desc: "Voglio scoprire nuovi ambiti tech" },
+    { id: "interview", label: "Superare un colloquio", icon: Target, desc: "Ho un colloquio in arrivo e voglio arrivarci pronto" },
+    { id: "improve", label: "Migliorare le mie skills", icon: GraduationCap, desc: "Voglio diventare più forte tecnicamente, passo dopo passo" },
+    { id: "explore", label: "Esplorare nuove aree", icon: Briefcase, desc: "Sono curioso e voglio scoprire nuovi ambiti tech" },
 ];
 
 const EXPERIENCE_LEVELS = [
@@ -52,10 +52,10 @@ export default function OnboardingPage() {
         // Step 1: Goal
         <div key="goal" className="animate-fade-up">
             <h2 className="font-display text-3xl font-bold text-text-primary">
-                Qual è il tuo obiettivo?
+                Perché sei qui?
             </h2>
             <p className="mt-2 text-text-secondary">
-                Ci aiuterà a personalizzare la tua esperienza.
+                Così sappiamo come aiutarti al meglio.
             </p>
             <div className="mt-8 space-y-3">
                 {GOALS.map((g) => {
@@ -65,8 +65,8 @@ export default function OnboardingPage() {
                             key={g.id}
                             onClick={() => { setGoal(g.id); setStep(1); }}
                             className={`flex w-full items-center gap-4 rounded-xl border p-5 text-left transition-all ${goal === g.id
-                                    ? "border-accent/40 bg-accent/5"
-                                    : "border-border bg-bg-secondary hover:border-accent/20 hover:bg-bg-elevated"
+                                ? "border-accent/40 bg-accent/5"
+                                : "border-border bg-bg-secondary hover:border-accent/20 hover:bg-bg-elevated"
                                 }`}
                         >
                             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10">
@@ -85,10 +85,10 @@ export default function OnboardingPage() {
         // Step 2: Tech Track
         <div key="track" className="animate-fade-up">
             <h2 className="font-display text-3xl font-bold text-text-primary">
-                Su quale area ti concentri?
+                Qual è il tuo mondo?
             </h2>
             <p className="mt-2 text-text-secondary">
-                Seleziona la tua area tech principale.
+                Le domande saranno calibrate sulla tua area di competenza.
             </p>
             <div className="mt-8 grid grid-cols-2 gap-3">
                 {(Object.entries(TECH_TRACKS) as [TechTrack, (typeof TECH_TRACKS)[TechTrack]][]).map(
@@ -99,8 +99,8 @@ export default function OnboardingPage() {
                                 key={key}
                                 onClick={() => { setSelectedTrack(key); setStep(2); }}
                                 className={`flex items-center gap-3 rounded-xl border p-4 text-left transition-all ${selectedTrack === key
-                                        ? "border-accent/40 bg-accent/5"
-                                        : "border-border bg-bg-secondary hover:border-accent/20 hover:bg-bg-elevated"
+                                    ? "border-accent/40 bg-accent/5"
+                                    : "border-border bg-bg-secondary hover:border-accent/20 hover:bg-bg-elevated"
                                     }`}
                             >
                                 {Icon && <Icon className="h-5 w-5 flex-shrink-0" style={{ color: config.color }} />}
@@ -115,10 +115,10 @@ export default function OnboardingPage() {
         // Step 3: Experience
         <div key="experience" className="animate-fade-up">
             <h2 className="font-display text-3xl font-bold text-text-primary">
-                Quanta esperienza hai?
+                A che livello sei?
             </h2>
             <p className="mt-2 text-text-secondary">
-                Adatteremo la difficoltà delle domande al tuo livello.
+                Non preoccuparti, puoi sempre cambiare idea. L'AI si adatterà.
             </p>
             <div className="mt-8 space-y-3">
                 {EXPERIENCE_LEVELS.map((level) => (
@@ -126,8 +126,8 @@ export default function OnboardingPage() {
                         key={level.id}
                         onClick={() => { setExperience(level.id); handleFinish(); }}
                         className={`flex w-full items-center gap-4 rounded-xl border p-5 text-left transition-all ${experience === level.id
-                                ? "border-accent/40 bg-accent/5"
-                                : "border-border bg-bg-secondary hover:border-accent/20 hover:bg-bg-elevated"
+                            ? "border-accent/40 bg-accent/5"
+                            : "border-border bg-bg-secondary hover:border-accent/20 hover:bg-bg-elevated"
                             }`}
                     >
                         <div className={`flex h-10 w-10 items-center justify-center rounded-lg bg-${level.color}/10`}>

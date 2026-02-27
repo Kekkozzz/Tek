@@ -106,24 +106,26 @@ export default function Home() {
             <div className="animate-fade-up stagger-1 mb-8 inline-flex items-center gap-2 rounded-full border border-border bg-bg-secondary/50 px-4 py-1.5 backdrop-blur-sm">
               <Bot className="h-3.5 w-3.5 text-accent" />
               <span className="font-mono text-xs text-text-secondary tracking-wide">
-                POWERED BY AI
+                POWERED BY GEMINI AI
               </span>
             </div>
 
             {/* Headline */}
             <h1 className="animate-fade-up stagger-2 font-display text-5xl sm:text-6xl font-bold leading-[1.1] tracking-tight lg:text-7xl">
-              Supera il tuo
+              Il tuo prossimo
               <br />
-              colloquio
+              colloquio?
               <br />
               <span className="text-accent">{typedText}</span>
               <span className="animate-blink text-accent">|</span>
+              <br />
+              <span className="text-text-secondary">Superato.</span>
             </h1>
 
             {/* Subtitle */}
             <p className="animate-fade-up stagger-3 mt-6 text-lg leading-relaxed text-text-secondary">
-              Simulazioni di colloquio realistiche con AI per <strong className="text-text-primary">ogni ambito tech</strong>.
-              Da Frontend a DevOps, da Python a Rust — ricevi esercitazioni pratiche e feedback dettagliato come da un vero intervistatore senior.
+              Preparati come nessun corso può fare. Un <strong className="text-text-primary">intervistatore AI</strong> ti
+              sfida con domande reali, analizza il tuo codice live e ti dice esattamente dove migliorare — in 10 aree tech diverse.
             </p>
 
             {/* CTA */}
@@ -132,7 +134,7 @@ export default function Home() {
                 href="/interview"
                 className="inline-flex items-center gap-2 rounded-lg bg-accent px-8 py-3.5 font-mono text-sm font-semibold uppercase tracking-wide text-bg-primary transition-all duration-200 hover:brightness-110 glow-border"
               >
-                Inizia Gratis
+                Prova il Tuo Primo Colloquio
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
@@ -204,20 +206,20 @@ export default function Home() {
           {[
             {
               icon: Bot,
-              title: "Mock Interview AI",
-              desc: "Chat in tempo reale con un intervistatore AI che adatta le domande e la difficoltà alla tua area tech selezionata.",
+              title: "Colloqui che Sembrano Veri",
+              desc: "Un AI senior ti fa domande, ti mette alla prova e adatta la difficoltà in tempo reale. Come un vero colloquio, senza l'ansia.",
               color: "accent",
             },
             {
               icon: Code2,
-              title: "Code Editor Integrato",
-              desc: "Editor stile VS Code con syntax highlighting per Java, Python, C++, Go, Rust, SQL e decine di altri linguaggi.",
+              title: "Scrivi Codice, Non Solo Risposte",
+              desc: "Editor VS Code integrato con 16+ linguaggi. L'AI analizza il tuo codice in tempo reale e ti guida verso la soluzione.",
               color: "indigo",
             },
             {
               icon: BarChart3,
-              title: "Report & Analytics",
-              desc: "Feedback dettagliato al termine di ogni sessione: punteggio, punti di forza e aree specifiche da approfondire.",
+              title: "Scopri Dove Migliorare",
+              desc: "Dopo ogni sessione ricevi un report con punteggio, punti di forza e le aree esatte su cui lavorare. Zero sorprese al colloquio reale.",
               color: "warning",
             },
           ].map((feature) => {

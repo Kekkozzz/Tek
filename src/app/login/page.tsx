@@ -27,10 +27,10 @@ export default function LoginPage() {
           </div>
 
           <h1 className="font-display text-2xl font-bold tracking-tight">
-            Accedi a <span className="text-accent">Tek</span>Interview
+            Entra in <span className="text-accent">Tek</span>Interview
           </h1>
           <p className="mt-2 text-sm text-text-secondary">
-            Accedi per salvare i tuoi progressi e la cronologia.
+            I tuoi progressi e la cronologia ti aspettano.
           </p>
 
           <button

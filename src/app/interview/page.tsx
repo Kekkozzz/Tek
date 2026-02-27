@@ -98,17 +98,17 @@ export default function InterviewSetupPage() {
         {/* Header */}
         <div className="animate-fade-up">
           <span className="font-mono text-xs text-accent tracking-wide uppercase">
-            Nuova Intervista
+            Nuovo Colloquio
           </span>
           <h1 className="mt-2 font-display text-4xl font-bold tracking-tight">
-            {step === 1 && "Scegli la tua area"}
-            {step === 2 && "Configura il colloquio"}
-            {step === 3 && "Livello di difficoltà"}
+            {step === 1 && "Su cosa vuoi prepararti?"}
+            {step === 2 && "Personalizza il colloquio"}
+            {step === 3 && "Scegli la sfida"}
           </h1>
           <p className="mt-3 text-text-secondary">
-            {step === 1 && "In quale ambito vuoi esercitarti?"}
-            {step === 2 && "Tipo di intervista e linguaggio/tecnologia."}
-            {step === 3 && "Quanto vuoi che sia impegnativo?"}
+            {step === 1 && "Seleziona l'area tech — ti prepareremo domande specifiche."}
+            {step === 2 && "Scegli il formato e il linguaggio con cui ti senti più a tuo agio."}
+            {step === 3 && "Junior, Mid o Senior? L'AI calibrerà le domande di conseguenza."}
           </p>
         </div>
 
