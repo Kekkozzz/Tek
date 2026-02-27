@@ -66,9 +66,15 @@ export async function POST(request: Request) {
       });
     }
 
-    // Continue the conversation
+    // Gemini requires history to start with a "user" role message.
+    // Prepend the initial prompt that started the interview.
+    const fullHistory = [
+      { role: "user" as const, parts: [{ text: "Inizia il colloquio tecnico. Presentati brevemente e poni la prima domanda." }] },
+      ...geminiHistory.slice(0, -1),
+    ];
+
     const chat = model.startChat({
-      history: geminiHistory.slice(0, -1),
+      history: fullHistory,
     });
 
     const lastMessage = geminiHistory[geminiHistory.length - 1];
