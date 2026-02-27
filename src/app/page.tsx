@@ -1,11 +1,12 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { TECH_TRACKS, type TechTrack } from "@/types";
 import {
   Globe, Server, Smartphone, Cloud, BrainCircuit,
   Database, ShieldCheck, Puzzle, Network, Wrench,
-  ArrowRight,
-  Code2,
-  Sparkles,
+  ArrowRight, Code2, Sparkles, Bot, BarChart3, BookOpen,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -14,7 +15,85 @@ const TRACK_ICONS: Record<string, LucideIcon> = {
   Database, ShieldCheck, Puzzle, Network, Wrench,
 };
 
+// Words to cycle through in the typing animation
+const TYPING_WORDS = ["Frontend", "Backend", "DevOps", "Mobile", "Data Science", "System Design"];
+
+function useTypingEffect(words: string[], typingSpeed = 80, deleteSpeed = 50, pauseMs = 1800) {
+  const [text, setText] = useState("");
+  const [wordIndex, setWordIndex] = useState(0);
+  const [phase, setPhase] = useState<"typing" | "pausing" | "deleting">("typing");
+
+  useEffect(() => {
+    const currentWord = words[wordIndex];
+
+    let delay: number;
+    if (phase === "typing") {
+      delay = typingSpeed;
+    } else if (phase === "pausing") {
+      delay = pauseMs;
+    } else {
+      delay = deleteSpeed;
+    }
+
+    const timeout = setTimeout(() => {
+      if (phase === "typing") {
+        const next = currentWord.slice(0, text.length + 1);
+        setText(next);
+        if (next.length === currentWord.length) {
+          setPhase("pausing");
+        }
+      } else if (phase === "pausing") {
+        setPhase("deleting");
+      } else {
+        const next = currentWord.slice(0, text.length - 1);
+        setText(next);
+        if (next.length === 0) {
+          setWordIndex((prev) => (prev + 1) % words.length);
+          setPhase("typing");
+        }
+      }
+    }, delay);
+
+    return () => clearTimeout(timeout);
+  }, [text, phase, wordIndex, words, typingSpeed, deleteSpeed, pauseMs]);
+
+  return text;
+}
+
+function useCountUp(target: number, duration = 2000) {
+  const [count, setCount] = useState(0);
+  const [started, setStarted] = useState(false);
+
+  useEffect(() => {
+    // Small delay before starting
+    const delay = setTimeout(() => setStarted(true), 500);
+    return () => clearTimeout(delay);
+  }, []);
+
+  useEffect(() => {
+    if (!started) return;
+    const steps = 60;
+    const increment = target / steps;
+    let current = 0;
+    const interval = setInterval(() => {
+      current += increment;
+      if (current >= target) {
+        setCount(target);
+        clearInterval(interval);
+      } else {
+        setCount(Math.floor(current));
+      }
+    }, duration / steps);
+    return () => clearInterval(interval);
+  }, [started, target, duration]);
+
+  return count;
+}
+
 export default function Home() {
+  const typedText = useTypingEffect(TYPING_WORDS);
+  const topicCount = useCountUp(80);
+
   return (
     <div className="relative min-h-screen bg-bg-primary gradient-mesh bg-grid overflow-hidden">
       {/* Hero Section */}
@@ -25,9 +104,9 @@ export default function Home() {
           <div className="max-w-2xl">
             {/* Badge */}
             <div className="animate-fade-up stagger-1 mb-8 inline-flex items-center gap-2 rounded-full border border-border bg-bg-secondary/50 px-4 py-1.5 backdrop-blur-sm">
-              <span className="h-2 w-2 rounded-full bg-accent animate-pulse" />
+              <Bot className="h-3.5 w-3.5 text-accent" />
               <span className="font-mono text-xs text-text-secondary tracking-wide">
-                LA PIATTAFORMA ITALIANA #1 PER MOCK INTERVIEW
+                POWERED BY AI
               </span>
             </div>
 
@@ -35,9 +114,10 @@ export default function Home() {
             <h1 className="animate-fade-up stagger-2 font-display text-5xl sm:text-6xl font-bold leading-[1.1] tracking-tight lg:text-7xl">
               Supera il tuo
               <br />
-              <span className="text-accent">colloquio</span>
+              colloquio
               <br />
-              <span className="text-text-secondary">tecnico.</span>
+              <span className="text-accent">{typedText}</span>
+              <span className="animate-blink text-accent">|</span>
             </h1>
 
             {/* Subtitle */}
@@ -52,27 +132,28 @@ export default function Home() {
                 href="/interview"
                 className="inline-flex items-center gap-2 rounded-lg bg-accent px-8 py-3.5 font-mono text-sm font-semibold uppercase tracking-wide text-bg-primary transition-all duration-200 hover:brightness-110 glow-border"
               >
-                Inizia Esercitazione
+                Inizia Gratis
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href="/dashboard"
+                href="/learn"
                 className="inline-flex items-center gap-2 rounded-lg border border-border bg-bg-secondary/80 px-8 py-3.5 font-mono text-sm tracking-wide text-text-secondary transition-all duration-200 hover:border-accent/50 hover:text-text-primary backdrop-blur-sm"
               >
-                Dashboard
+                <BookOpen className="h-4 w-4" />
+                Knowledge Base
               </Link>
             </div>
 
-            {/* Social Proof / Stats */}
+            {/* Social Proof Stats */}
             <div className="animate-fade-up stagger-5 mt-10 flex items-center gap-6 text-sm text-text-muted font-mono">
               <div className="flex items-center gap-2">
                 <Code2 className="h-4 w-4 text-accent/70" />
-                <span>10 Aree Tech</span>
+                <span><strong className="text-text-primary">10</strong> Aree Tech</span>
               </div>
               <div className="h-4 w-px bg-border" />
               <div className="flex items-center gap-2">
                 <Globe className="h-4 w-4 text-accent/70" />
-                <span>50+ Tecnologie</span>
+                <span><strong className="text-text-primary">{topicCount}+</strong> argomenti</span>
               </div>
             </div>
           </div>
@@ -82,9 +163,8 @@ export default function Home() {
             <div className="absolute -inset-4 rounded-3xl bg-accent/5 blur-2xl md:-inset-10" />
             <div className="relative grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 p-4 lg:p-0">
               {(Object.entries(TECH_TRACKS) as [TechTrack, (typeof TECH_TRACKS)[TechTrack]][]).map(
-                ([key, config], i) => {
+                ([key, config]) => {
                   const IconComponent = TRACK_ICONS[config.icon];
-                  // Make some tiles span 2 columns dynamically for a bento-box feel or just keep them uniform. Uniform is cleaner.
                   return (
                     <Link
                       key={key}
@@ -104,23 +184,17 @@ export default function Home() {
                   );
                 }
               )}
-              {/* Coming Soon Cards to balance the 3-column grid (10 + 2 = 12) */}
-              <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border/60 bg-bg-secondary/20 p-6 backdrop-blur-md opacity-60 cursor-not-allowed">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-bg-elevated/30 border border-border/30">
-                  <Sparkles className="h-5 w-5 text-text-muted" />
+              {/* Coming Soon Cards */}
+              {[1, 2].map((n) => (
+                <div key={n} className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border/60 bg-bg-secondary/20 p-6 backdrop-blur-md opacity-60 cursor-not-allowed">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-bg-elevated/30 border border-border/30">
+                    <Sparkles className="h-5 w-5 text-text-muted" />
+                  </div>
+                  <span className="font-mono text-[10px] font-bold text-text-muted text-center uppercase tracking-widest">
+                    Coming Soon
+                  </span>
                 </div>
-                <span className="font-mono text-[10px] font-bold text-text-muted text-center uppercase tracking-widest">
-                  Coming Soon
-                </span>
-              </div>
-              <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border/60 bg-bg-secondary/20 p-6 backdrop-blur-md opacity-60 cursor-not-allowed">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-bg-elevated/30 border border-border/30">
-                  <Sparkles className="h-5 w-5 text-text-muted" />
-                </div>
-                <span className="font-mono text-[10px] font-bold text-text-muted text-center uppercase tracking-widest">
-                  Coming Soon
-                </span>
-              </div>
+              ))}
             </div>
           </div>
         </div>
@@ -129,38 +203,44 @@ export default function Home() {
         <div className="animate-fade-up stagger-5 mt-32 grid gap-6 sm:grid-cols-3 relative z-10">
           {[
             {
-              icon: "01",
+              icon: Bot,
               title: "Mock Interview AI",
               desc: "Chat in tempo reale con un intervistatore AI che adatta le domande e la difficoltà alla tua area tech selezionata.",
+              color: "accent",
             },
             {
-              icon: "02",
+              icon: Code2,
               title: "Code Editor Integrato",
               desc: "Editor stile VS Code con syntax highlighting per Java, Python, C++, Go, Rust, SQL e decine di altri linguaggi.",
+              color: "indigo",
             },
             {
-              icon: "03",
+              icon: BarChart3,
               title: "Report & Analytics",
               desc: "Feedback dettagliato al termine di ogni sessione: punteggio, punti di forza e aree specifiche da approfondire.",
+              color: "warning",
             },
-          ].map((feature) => (
-            <div
-              key={feature.icon}
-              className="group rounded-2xl border border-border bg-bg-secondary/50 p-8 backdrop-blur-sm transition-all duration-300 hover:border-accent/30 hover:bg-bg-elevated/50"
-            >
-              <div className="flex items-center justify-between mb-6">
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-accent/10 font-mono text-sm font-bold text-accent">
-                  {feature.icon}
-                </span>
+          ].map((feature) => {
+            const FeatureIcon = feature.icon;
+            return (
+              <div
+                key={feature.title}
+                className="group rounded-2xl border border-border bg-bg-secondary/50 p-8 backdrop-blur-sm transition-all duration-300 hover:border-accent/30 hover:bg-bg-elevated/50"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div className={`inline-flex h-11 w-11 items-center justify-center rounded-xl bg-${feature.color}/10 border border-${feature.color}/20`}>
+                    <FeatureIcon className={`h-5 w-5 text-${feature.color}`} />
+                  </div>
+                </div>
+                <h3 className="font-display text-xl font-semibold text-text-primary mb-3">
+                  {feature.title}
+                </h3>
+                <p className="text-base leading-relaxed text-text-secondary">
+                  {feature.desc}
+                </p>
               </div>
-              <h3 className="font-display text-xl font-semibold text-text-primary mb-3">
-                {feature.title}
-              </h3>
-              <p className="text-base leading-relaxed text-text-secondary">
-                {feature.desc}
-              </p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

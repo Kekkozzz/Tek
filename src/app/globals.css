@@ -104,7 +104,7 @@ body::before {
 /* ── Subtle grid pattern ── */
 .bg-grid {
   background-size: 40px 40px;
-  background-image: 
+  background-image:
     linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
 }
@@ -124,6 +124,7 @@ body::before {
     opacity: 0;
     transform: translateY(16px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -134,17 +135,34 @@ body::before {
   animation: fade-up 0.5s ease-out both;
 }
 
-.stagger-1 { animation-delay: 0.05s; }
-.stagger-2 { animation-delay: 0.1s; }
-.stagger-3 { animation-delay: 0.15s; }
-.stagger-4 { animation-delay: 0.2s; }
-.stagger-5 { animation-delay: 0.25s; }
+.stagger-1 {
+  animation-delay: 0.05s;
+}
+
+.stagger-2 {
+  animation-delay: 0.1s;
+}
+
+.stagger-3 {
+  animation-delay: 0.15s;
+}
+
+.stagger-4 {
+  animation-delay: 0.2s;
+}
+
+.stagger-5 {
+  animation-delay: 0.25s;
+}
 
 /* ── Pulse glow for active elements ── */
 @keyframes pulse-glow {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 10px var(--color-accent-dim);
   }
+
   50% {
     box-shadow: 0 0 25px var(--color-accent-dim), 0 0 50px var(--color-accent-dim);
   }
@@ -152,4 +170,98 @@ body::before {
 
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* ── Blinking cursor for typing animation ── */
+@keyframes blink {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+}
+
+.animate-blink {
+  animation: blink 0.8s step-end infinite;
+}
+
+/* ── Code Snapshot (Knowledge Base) ── */
+.code-snapshot {
+  margin: 1.5rem 0;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  background: var(--color-bg-primary);
+}
+
+.code-snapshot-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--color-bg-elevated);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.code-snapshot-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.code-snapshot-dots .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.code-snapshot-dots .dot-red {
+  background: #ff5f57;
+}
+
+.code-snapshot-dots .dot-yellow {
+  background: #febc2e;
+}
+
+.code-snapshot-dots .dot-green {
+  background: #28c840;
+}
+
+.code-snapshot-lang {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.code-snapshot-body {
+  margin: 0 !important;
+  padding: 20px !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: var(--color-bg-primary) !important;
+  overflow-x: auto;
+}
+
+.code-snapshot-body code {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 13px !important;
+  line-height: 1.6 !important;
+  color: var(--color-text-primary) !important;
+  background: transparent !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+.inline-code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8em;
+  color: var(--color-accent);
+  background: var(--color-bg-elevated);
+  padding: 2px 6px;
+  border-radius: 4px;
 }

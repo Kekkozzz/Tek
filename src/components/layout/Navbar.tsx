@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/interview", label: "Intervista" },
+  { href: "/learn", label: "Impara" },
   { href: "/history", label: "Cronologia" },
   { href: "/topics", label: "Argomenti" },
 ];
@@ -37,10 +38,9 @@ export default function Navbar() {
                 href={item.href}
                 className={`
                   px-4 py-2 rounded-lg font-mono text-sm tracking-wide transition-all duration-200
-                  ${
-                    isActive
-                      ? "text-accent bg-accent/10 border border-accent/20"
-                      : "text-text-secondary hover:text-text-primary hover:bg-bg-elevated"
+                  ${isActive
+                    ? "text-accent bg-accent/10 border border-accent/20"
+                    : "text-text-secondary hover:text-text-primary hover:bg-bg-elevated"
                   }
                 `}
               >
@@ -115,10 +115,9 @@ export default function Navbar() {
                   onClick={() => setMobileOpen(false)}
                   className={`
                     block px-4 py-3 rounded-lg font-mono text-sm tracking-wide transition-all
-                    ${
-                      isActive
-                        ? "text-accent bg-accent/10 border border-accent/20"
-                        : "text-text-secondary hover:text-text-primary hover:bg-bg-elevated"
+                    ${isActive
+                      ? "text-accent bg-accent/10 border border-accent/20"
+                      : "text-text-secondary hover:text-text-primary hover:bg-bg-elevated"
                     }
                   `}
                 >

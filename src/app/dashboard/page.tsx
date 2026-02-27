@@ -7,6 +7,7 @@ import WeakAreas from "@/components/dashboard/WeakAreas";
 import ScoreChart from "@/components/dashboard/ScoreChart";
 import ActivityHeatmap from "@/components/dashboard/ActivityHeatmap";
 import SkillRadar from "@/components/dashboard/SkillRadar";
+import AISuggestions from "@/components/dashboard/AISuggestions";
 import { TECH_TRACKS, type TechTrack } from "@/types";
 import { TRACK_PROMPT_DATA } from "@/lib/prompts/tracks-data";
 import {
@@ -252,6 +253,11 @@ export default function DashboardPage() {
             {/* Activity Heatmap */}
             <div className="mt-10">
               <ActivityHeatmap data={stats.daily_activity ?? []} />
+            </div>
+
+            {/* AI Suggestions */}
+            <div className="mt-6">
+              <AISuggestions />
             </div>
 
             {/* Charts row */}
