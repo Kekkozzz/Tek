@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Navbar from "@/components/layout/Navbar";
-import { useUserId } from "@/hooks/useUserId";
 
 interface TopicData {
   topic: string;
@@ -91,15 +90,13 @@ function getMasteryLabel(level: number): string {
 }
 
 export default function TopicsPage() {
-  const userId = useUserId();
   const [topicData, setTopicData] = useState<TopicData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!userId) return;
     async function load() {
       try {
-        const res = await fetch(`/api/topics?userId=${userId}`);
+        const res = await fetch("/api/topics");
         if (res.ok) setTopicData(await res.json());
       } catch (e) {
         console.error("Failed to load topics:", e);
@@ -108,7 +105,7 @@ export default function TopicsPage() {
       }
     }
     load();
-  }, [userId]);
+  }, []);
 
   // Build a lookup map from real data
   const masteryMap = new Map(topicData.map((t) => [t.topic, t]));

@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
-import { useUserId } from "@/hooks/useUserId";
 import WeakAreas from "@/components/dashboard/WeakAreas";
 import ScoreChart from "@/components/dashboard/ScoreChart";
 
@@ -21,18 +20,16 @@ interface Stats {
 }
 
 export default function DashboardPage() {
-  const userId = useUserId();
   const [stats, setStats] = useState<Stats | null>(null);
   const [topics, setTopics] = useState<{ topic: string; category: string; mastery_level: number; sessions_count: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!userId) return;
     async function load() {
       try {
         const [statsRes, topicsRes] = await Promise.all([
-          fetch(`/api/stats?userId=${userId}`),
-          fetch(`/api/topics?userId=${userId}`),
+          fetch("/api/stats"),
+          fetch("/api/topics"),
         ]);
         if (statsRes.ok) setStats(await statsRes.json());
         if (topicsRes.ok) setTopics(await topicsRes.json());
@@ -43,7 +40,7 @@ export default function DashboardPage() {
       }
     }
     load();
-  }, [userId]);
+  }, []);
 
   const hasData = stats && stats.total_sessions > 0;
 

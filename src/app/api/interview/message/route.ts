@@ -1,12 +1,44 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { buildInterviewerPrompt } from "@/lib/prompts/interviewer";
 import { saveMessage } from "@/lib/supabase/queries";
+import { getAuthenticatedUser } from "@/lib/supabase/server";
 import type { InterviewType, Difficulty } from "@/types";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
+const GEMINI_TIMEOUT_MS = 30_000;
+
+type GeminiMessage = { role: "user" | "model"; parts: { text: string }[] };
+
+/** Merge consecutive messages with the same role (Gemini requires strict user/model alternation) */
+function mergeConsecutiveRoles(history: GeminiMessage[]): GeminiMessage[] {
+  return history.reduce<GeminiMessage[]>((acc, msg) => {
+    const last = acc[acc.length - 1];
+    if (last && last.role === msg.role) {
+      last.parts[0].text += "\n\n" + msg.parts[0].text;
+    } else {
+      acc.push({ role: msg.role, parts: [{ text: msg.parts[0].text }] });
+    }
+    return acc;
+  }, []);
+}
+
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`${label}: timeout after ${ms}ms`)), ms)
+    ),
+  ]);
+}
+
 export async function POST(request: Request) {
   try {
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     const {
       messages,
@@ -22,20 +54,16 @@ export async function POST(request: Request) {
       sessionId?: string;
     } = body;
 
-    // Save user message to Supabase if sessionId provided
+    // Save user message to Supabase (fire-and-forget to not block AI response)
     if (sessionId && messages.length > 0) {
       const lastMsg = messages[messages.length - 1];
       if (lastMsg.role === "user") {
-        try {
-          await saveMessage({
-            session_id: sessionId,
-            role: "user",
-            content: lastMsg.content,
-            code_snapshot: currentCode || undefined,
-          });
-        } catch (e) {
-          console.error("Failed to save user message:", e);
-        }
+        saveMessage({
+          session_id: sessionId,
+          role: "user",
+          content: lastMsg.content,
+          code_snapshot: currentCode || undefined,
+        }).catch((e) => console.error("Failed to save user message:", e));
       }
     }
 
@@ -58,8 +86,12 @@ export async function POST(request: Request) {
 
     // If no messages, start the interview
     if (geminiHistory.length === 0) {
-      const result = await model.generateContentStream(
-        "Inizia il colloquio tecnico. Presentati brevemente e poni la prima domanda."
+      const result = await withTimeout(
+        model.generateContentStream(
+          "Inizia il colloquio tecnico. Presentati brevemente e poni la prima domanda."
+        ),
+        GEMINI_TIMEOUT_MS,
+        "generateContentStream"
       );
 
       let fullResponse = "";
@@ -97,18 +129,24 @@ export async function POST(request: Request) {
     }
 
     // Gemini requires history to start with a "user" role message.
-    // Prepend the initial prompt that started the interview.
-    const fullHistory = [
-      { role: "user" as const, parts: [{ text: "Inizia il colloquio tecnico. Presentati brevemente e poni la prima domanda." }] },
+    // Prepend the initial prompt that started the interview, then merge
+    // consecutive same-role messages (e.g. after page refresh + re-send).
+    const rawHistory: GeminiMessage[] = [
+      { role: "user", parts: [{ text: "Inizia il colloquio tecnico. Presentati brevemente e poni la prima domanda." }] },
       ...geminiHistory.slice(0, -1),
     ];
+    const fullHistory = mergeConsecutiveRoles(rawHistory);
 
     const chat = model.startChat({
       history: fullHistory,
     });
 
     const lastMessage = geminiHistory[geminiHistory.length - 1];
-    const result = await chat.sendMessageStream(lastMessage.parts[0].text);
+    const result = await withTimeout(
+      chat.sendMessageStream(lastMessage.parts[0].text),
+      GEMINI_TIMEOUT_MS,
+      "sendMessageStream"
+    );
 
     let fullResponse = "";
     const stream = new ReadableStream({

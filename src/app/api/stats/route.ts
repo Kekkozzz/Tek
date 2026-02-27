@@ -1,15 +1,14 @@
 import { getUserStats } from "@/lib/supabase/queries";
+import { getAuthenticatedUser } from "@/lib/supabase/server";
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
-
-    if (!userId) {
-      return Response.json({ error: "userId required" }, { status: 400 });
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const stats = await getUserStats(userId);
+    const stats = await getUserStats(user.id);
     return Response.json(stats);
   } catch (error) {
     console.error("Stats error:", error);

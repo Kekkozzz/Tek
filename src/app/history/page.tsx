@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
-import { useUserId } from "@/hooks/useUserId";
 import { INTERVIEW_TYPES } from "@/types";
 import type { InterviewType } from "@/types";
 
@@ -19,17 +18,15 @@ interface SessionItem {
 }
 
 export default function HistoryPage() {
-  const userId = useUserId();
   const [sessions, setSessions] = useState<SessionItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "active" | "completed" | "abandoned">("all");
 
   useEffect(() => {
-    if (!userId) return;
     async function load() {
       try {
-        const statusParam = filter !== "all" ? `&status=${filter}` : "";
-        const res = await fetch(`/api/sessions?userId=${userId}${statusParam}`);
+        const statusParam = filter !== "all" ? `?status=${filter}` : "";
+        const res = await fetch(`/api/sessions${statusParam}`);
         if (res.ok) setSessions(await res.json());
       } catch (e) {
         console.error("Failed to load history:", e);
@@ -38,7 +35,7 @@ export default function HistoryPage() {
       }
     }
     load();
-  }, [userId, filter]);
+  }, [filter]);
 
   function formatDate(dateStr: string) {
     return new Date(dateStr).toLocaleDateString("it-IT", {

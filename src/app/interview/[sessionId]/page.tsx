@@ -5,7 +5,6 @@ import { useParams, useSearchParams } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import ChatPanel, { type ChatMessage } from "@/components/interview/ChatPanel";
 import CodeEditor from "@/components/interview/CodeEditor";
-import { useUserId } from "@/hooks/useUserId";
 import type { InterviewType, Difficulty } from "@/types";
 
 export default function InterviewSessionPage() {
@@ -15,8 +14,6 @@ export default function InterviewSessionPage() {
   const type = (searchParams.get("type") as InterviewType) || "react";
   const difficulty =
     (searchParams.get("difficulty") as Difficulty) || "mid";
-  const userId = useUserId();
-
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [code, setCode] = useState<string>(
     "// Scrivi il tuo codice qui...\n"
@@ -79,7 +76,7 @@ export default function InterviewSessionPage() {
 
   // Create session in Supabase
   const ensureSessionCreated = useCallback(async () => {
-    if (sessionCreatedRef.current || !userId) return;
+    if (sessionCreatedRef.current) return;
     sessionCreatedRef.current = true;
     try {
       await fetch("/api/sessions", {
@@ -87,7 +84,6 @@ export default function InterviewSessionPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: sessionId,
-          user_id: userId,
           type,
           difficulty,
         }),
@@ -96,7 +92,7 @@ export default function InterviewSessionPage() {
       console.error("Failed to create session:", e);
       sessionCreatedRef.current = false;
     }
-  }, [sessionId, userId, type, difficulty]);
+  }, [sessionId, type, difficulty]);
 
   const sendMessage = useCallback(
     async (userMessage: string) => {
@@ -240,7 +236,6 @@ export default function InterviewSessionPage() {
             content: m.content,
           })),
           sessionId,
-          userId,
           durationSeconds,
         }),
       });
@@ -254,7 +249,7 @@ export default function InterviewSessionPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [messages, sessionId, userId]);
+  }, [messages, sessionId]);
 
   // Loading state while restoring
   if (isRestoring) {

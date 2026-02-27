@@ -1,21 +1,25 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { buildReportPrompt } from "@/lib/prompts/report";
 import { updateSession, upsertTopicMastery } from "@/lib/supabase/queries";
+import { getAuthenticatedUser } from "@/lib/supabase/server";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function POST(request: Request) {
   try {
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     const {
       messages,
       sessionId,
-      userId,
       durationSeconds,
     }: {
       messages: { role: string; content: string }[];
       sessionId?: string;
-      userId?: string;
       durationSeconds?: number;
     } = body;
 
@@ -71,7 +75,7 @@ export async function POST(request: Request) {
         });
 
         // Update topic mastery if we have topics and a userId
-        if (userId && report.topics_evaluated?.length) {
+        if (user.id && report.topics_evaluated?.length) {
           // topics_evaluated can be objects {topic, category, score} or strings
           const topicScores = report.topics_evaluated.map((t: { topic: string; category: string; score: number } | string) => {
             if (typeof t === "string") {
@@ -79,7 +83,7 @@ export async function POST(request: Request) {
             }
             return { topic: t.topic, category: t.category || "General", score: t.score ?? report.score };
           });
-          await upsertTopicMastery(userId, topicScores);
+          await upsertTopicMastery(user.id, topicScores);
         }
       } catch (e) {
         console.error("Failed to save report to Supabase:", e);

@@ -1,4 +1,4 @@
-import { supabase } from "./client";
+import { createAdminClient } from "./server";
 import type {
   InterviewType,
   Difficulty,
@@ -13,6 +13,7 @@ export async function createSession(data: {
   type: InterviewType;
   difficulty: Difficulty;
 }) {
+  const supabase = createAdminClient();
   const { data: session, error } = await supabase
     .from("interview_sessions")
     .insert(data)
@@ -23,6 +24,7 @@ export async function createSession(data: {
 }
 
 export async function getSession(id: string) {
+  const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("interview_sessions")
     .select("*")
@@ -45,6 +47,7 @@ export async function updateSession(
     completed_at?: string;
   }
 ) {
+  const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("interview_sessions")
     .update(updates)
@@ -59,6 +62,7 @@ export async function getUserSessions(
   userId: string,
   options?: { status?: SessionStatus; limit?: number; offset?: number }
 ) {
+  const supabase = createAdminClient();
   let query = supabase
     .from("interview_sessions")
     .select("*")
@@ -82,6 +86,7 @@ export async function saveMessage(data: {
   content: string;
   code_snapshot?: string;
 }) {
+  const supabase = createAdminClient();
   const { data: message, error } = await supabase
     .from("messages")
     .insert(data)
@@ -92,6 +97,7 @@ export async function saveMessage(data: {
 }
 
 export async function getSessionMessages(sessionId: string) {
+  const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("messages")
     .select("*")
@@ -104,6 +110,7 @@ export async function getSessionMessages(sessionId: string) {
 // ── Stats ──
 
 export async function getUserStats(userId: string) {
+  const supabase = createAdminClient();
   const { data: sessions, error } = await supabase
     .from("interview_sessions")
     .select("score, status, started_at, type")
@@ -131,6 +138,7 @@ export async function getUserStats(userId: string) {
 // ── Topic Mastery ──
 
 export async function getUserTopics(userId: string) {
+  const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("topic_mastery")
     .select("*")
@@ -144,6 +152,7 @@ export async function upsertTopicMastery(
   userId: string,
   topics: { topic: string; category: string; score: number }[]
 ) {
+  const supabase = createAdminClient();
   for (const t of topics) {
     const { data: existing } = await supabase
       .from("topic_mastery")

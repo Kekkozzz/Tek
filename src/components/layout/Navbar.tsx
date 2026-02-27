@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard" },
@@ -14,6 +15,7 @@ const NAV_ITEMS = [
 export default function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { user, loading: authLoading, signOut } = useAuth();
 
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-bg-primary/80 backdrop-blur-xl">
@@ -68,9 +70,38 @@ export default function Navbar() {
 
         {/* User area (desktop) */}
         <div className="hidden md:flex items-center gap-3">
-          <div className="h-8 w-8 rounded-full bg-bg-elevated border border-border flex items-center justify-center">
-            <span className="font-mono text-xs text-text-secondary">U</span>
-          </div>
+          {authLoading ? (
+            <div className="h-8 w-8 rounded-full bg-bg-elevated animate-pulse" />
+          ) : user ? (
+            <>
+              {user.user_metadata?.avatar_url ? (
+                <img
+                  src={user.user_metadata.avatar_url}
+                  alt=""
+                  className="h-8 w-8 rounded-full border border-border"
+                />
+              ) : (
+                <div className="h-8 w-8 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center">
+                  <span className="font-mono text-xs text-accent">
+                    {(user.email?.[0] || "U").toUpperCase()}
+                  </span>
+                </div>
+              )}
+              <button
+                onClick={signOut}
+                className="cursor-pointer font-mono text-xs text-text-secondary hover:text-text-primary transition-colors"
+              >
+                Esci
+              </button>
+            </>
+          ) : (
+            <Link
+              href="/login"
+              className="font-mono text-sm text-accent hover:text-accent/80 transition-colors"
+            >
+              Accedi
+            </Link>
+          )}
         </div>
       </div>
 
@@ -98,6 +129,24 @@ export default function Navbar() {
                 </Link>
               );
             })}
+            <div className="border-t border-border mt-2 pt-2">
+              {user ? (
+                <button
+                  onClick={() => { setMobileOpen(false); signOut(); }}
+                  className="cursor-pointer block w-full text-left px-4 py-3 rounded-lg font-mono text-sm text-text-secondary hover:text-text-primary hover:bg-bg-elevated transition-all"
+                >
+                  Esci
+                </button>
+              ) : (
+                <Link
+                  href="/login"
+                  onClick={() => setMobileOpen(false)}
+                  className="block px-4 py-3 rounded-lg font-mono text-sm text-accent hover:bg-bg-elevated transition-all"
+                >
+                  Accedi
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       )}
