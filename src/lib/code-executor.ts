@@ -6,6 +6,7 @@
  */
 
 const PISTON_API_URL = process.env.PISTON_API_URL || "https://emkc.org/api/v2/piston";
+const PISTON_API_KEY = process.env.PISTON_API_KEY || "";
 
 /** Map our internal language IDs to Piston language/version */
 const LANGUAGE_MAP: Record<string, { language: string; version: string }> = {
@@ -87,9 +88,16 @@ export async function executeCode(request: CodeExecutionRequest): Promise<CodeEx
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 15000); // 15s timeout
 
+        const headers: Record<string, string> = {
+            "Content-Type": "application/json",
+        };
+        if (PISTON_API_KEY) {
+            headers["Authorization"] = PISTON_API_KEY;
+        }
+
         const response = await fetch(`${PISTON_API_URL}/execute`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers,
             body: JSON.stringify({
                 language: pistonLang.language,
                 version: pistonLang.version,
