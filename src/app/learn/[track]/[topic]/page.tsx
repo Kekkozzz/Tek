@@ -3,8 +3,37 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import ReactMarkdown, { type Components } from "react-markdown";
 import Navbar from "@/components/layout/Navbar";
 import { BookOpen, Lightbulb, MessageSquareQuote, ArrowLeft, Loader2 } from "lucide-react";
+
+const markdownComponents: Components = {
+    pre({ children }) {
+        return <>{children}</>;
+    },
+    code({ className, children, ...props }) {
+        const match = /language-(\w+)/.exec(className || "");
+        if (match) {
+            const lang = match[1];
+            return (
+                <div className="code-snapshot">
+                    <div className="code-snapshot-header">
+                        <div className="code-snapshot-dots">
+                            <span className="dot dot-red" />
+                            <span className="dot dot-yellow" />
+                            <span className="dot dot-green" />
+                        </div>
+                        <span className="code-snapshot-lang">{lang}</span>
+                    </div>
+                    <pre className="code-snapshot-body">
+                        <code>{children}</code>
+                    </pre>
+                </div>
+            );
+        }
+        return <code className="inline-code" {...props}>{children}</code>;
+    },
+};
 
 interface Article {
     id?: string;
@@ -161,16 +190,10 @@ export default function TopicArticlePage() {
                                     Contenuto
                                 </h2>
                             </div>
-                            <div className="prose prose-invert prose-sm max-w-none
-                prose-headings:font-display prose-headings:text-text-primary
-                prose-p:text-text-secondary prose-p:leading-relaxed
-                prose-code:text-accent prose-code:bg-bg-elevated prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-xs
-                prose-pre:bg-bg-primary prose-pre:border prose-pre:border-border prose-pre:rounded-xl
-                prose-strong:text-text-primary
-                prose-a:text-accent prose-a:no-underline hover:prose-a:underline
-                prose-li:text-text-secondary
-              ">
-                                <div dangerouslySetInnerHTML={{ __html: renderMarkdown(article.content) }} />
+                            <div className="article-content max-w-none">
+                                <ReactMarkdown components={markdownComponents}>
+                                    {article.content}
+                                </ReactMarkdown>
                             </div>
                         </div>
 
@@ -218,63 +241,4 @@ export default function TopicArticlePage() {
             </main>
         </>
     );
-}
-
-/** Robust Markdown to HTML renderer with styled code blocks */
-function renderMarkdown(md: string): string {
-    // Normalize line endings
-    let text = md.replace(/\r\n/g, "\n");
-
-    // Phase 1: Extract code blocks into placeholders
-    const codeBlocks: string[] = [];
-    text = text.replace(/```(\w*)\n([\s\S]*?)```/g, (_match, lang: string, code: string) => {
-        const escapedCode = code
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .trimEnd();
-
-        const langLabel = lang || "code";
-        const html = `<div class="code-snapshot">
-      <div class="code-snapshot-header">
-        <div class="code-snapshot-dots">
-          <span class="dot dot-red"></span>
-          <span class="dot dot-yellow"></span>
-          <span class="dot dot-green"></span>
-        </div>
-        <span class="code-snapshot-lang">${langLabel}</span>
-      </div>
-      <pre class="code-snapshot-body"><code>${escapedCode}</code></pre>
-    </div>`;
-
-        codeBlocks.push(html);
-        return `%%CODEBLOCK_${codeBlocks.length - 1}%%`;
-    });
-
-    // Phase 2: Inline markdown transformations
-    text = text
-        // Inline code
-        .replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>')
-        // Headers
-        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-        .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-        .replace(/^# (.+)$/gm, '<h1>$1</h1>')
-        // Bold and italic
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.+?)\*/g, '<em>$1</em>')
-        // Unordered lists
-        .replace(/^- (.+)$/gm, '<li>$1</li>')
-        // Paragraphs (only non-tag, non-placeholder lines)
-        .replace(/^(?!<[hluop]|<li|<div|%%CODEBLOCK)(.+)$/gm, '<p>$1</p>');
-
-    // Wrap consecutive <li> in <ul>
-    text = text.replace(/(<li>[\s\S]*?<\/li>\n?)+/g, '<ul>$&</ul>');
-
-    // Phase 3: Reinsert code blocks
-    text = text.replace(/(?:<p>)?%%CODEBLOCK_(\d+)%%(?:<\/p>)?/g, (_match, idx: string) => {
-        return codeBlocks[parseInt(idx)];
-    });
-
-    return text;
 }
