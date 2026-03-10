@@ -6,7 +6,9 @@ import type { InterviewType, Difficulty, TechTrack } from "@/types";
 
 export const maxDuration = 60;
 
-const GEMINI_TIMEOUT_MS = 30_000;
+const GEMINI_TIMEOUT_MS = 45_000;
+const MAX_RETRIES = 2;
+const RETRY_BASE_MS = 1_000;
 
 type GeminiMessage = { role: "user" | "model"; parts: { text: string }[] };
 
@@ -30,6 +32,57 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
       setTimeout(() => reject(new Error(`${label}: timeout after ${ms}ms`)), ms)
     ),
   ]);
+}
+
+/** Check if an error is transient and worth retrying */
+function isTransient(err: unknown): boolean {
+  if (err instanceof Error) {
+    const msg = err.message.toLowerCase();
+    // Retry on timeouts, rate limits, server errors, network failures
+    if (msg.includes("timeout")) return true;
+    if (msg.includes("429") || msg.includes("rate")) return true;
+    if (msg.includes("503") || msg.includes("500")) return true;
+    if (msg.includes("fetch failed") || msg.includes("econnreset") || msg.includes("network")) return true;
+  }
+  return false;
+}
+
+/** Retry a function on transient failures with exponential backoff */
+async function withRetry<T>(fn: () => Promise<T>, label: string): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastError = err;
+      if (attempt < MAX_RETRIES && isTransient(err)) {
+        const delay = RETRY_BASE_MS * Math.pow(2, attempt);
+        console.warn(`${label}: attempt ${attempt + 1} failed, retrying in ${delay}ms...`, err);
+        await new Promise((r) => setTimeout(r, delay));
+      }
+    }
+  }
+  throw lastError;
+}
+
+/** Classify an error into a user-facing response */
+function classifyError(error: unknown): { status: number; message: string } {
+  if (error instanceof Error) {
+    const msg = error.message.toLowerCase();
+    if (msg.includes("timeout")) {
+      return { status: 504, message: "Timeout: l'AI non ha risposto in tempo. Riprova." };
+    }
+    if (msg.includes("429") || msg.includes("rate")) {
+      return { status: 429, message: "Troppi messaggi, riprova tra qualche secondo." };
+    }
+    if (msg.includes("safety") || msg.includes("block") || msg.includes("recitation")) {
+      return { status: 400, message: "Il messaggio non può essere elaborato dall'AI." };
+    }
+    if (msg.includes("api_key") || msg.includes("key_missing")) {
+      return { status: 401, message: "Chiave API Gemini mancante o non valida." };
+    }
+  }
+  return { status: 500, message: "Errore del server, riprova." };
 }
 
 export async function POST(request: Request) {
@@ -91,19 +144,27 @@ export async function POST(request: Request) {
       systemInstruction: systemPrompt,
     });
 
+    // Filter out invalid messages (empty content, system role) before sending to Gemini
+    const validMessages = messages.filter(
+      (msg) => msg.content?.trim() && msg.role !== "system"
+    );
+
     // Convert messages to Gemini format
-    const geminiHistory = messages.map((msg) => ({
+    const geminiHistory = validMessages.map((msg) => ({
       role: msg.role === "assistant" ? ("model" as const) : ("user" as const),
       parts: [{ text: msg.content }],
     }));
 
     // If no messages, start the interview
     if (geminiHistory.length === 0) {
-      const result = await withTimeout(
-        model.generateContentStream(
-          "Inizia il colloquio tecnico. Presentati brevemente e poni la prima domanda."
+      const result = await withRetry(
+        () => withTimeout(
+          model.generateContentStream(
+            "Inizia il colloquio tecnico. Presentati brevemente e poni la prima domanda."
+          ),
+          GEMINI_TIMEOUT_MS,
+          "generateContentStream"
         ),
-        GEMINI_TIMEOUT_MS,
         "generateContentStream"
       );
 
@@ -151,9 +212,12 @@ export async function POST(request: Request) {
     });
 
     const lastMessage = geminiHistory[geminiHistory.length - 1];
-    const result = await withTimeout(
-      chat.sendMessageStream(lastMessage.parts[0].text),
-      GEMINI_TIMEOUT_MS,
+    const result = await withRetry(
+      () => withTimeout(
+        chat.sendMessageStream(lastMessage.parts[0].text),
+        GEMINI_TIMEOUT_MS,
+        "sendMessageStream"
+      ),
       "sendMessageStream"
     );
 
@@ -187,9 +251,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("Interview message API error:", error);
-    return Response.json(
-      { error: "Failed to process message" },
-      { status: 500 }
-    );
+    const { status, message } = classifyError(error);
+    return Response.json({ error: message }, { status });
   }
 }

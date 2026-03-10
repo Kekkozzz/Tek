@@ -141,7 +141,14 @@ export default function InterviewSessionPage() {
           }),
         });
 
-        if (!response.ok) throw new Error("API error");
+        if (!response.ok) {
+          let errMessage = "Errore di connessione. Riprova.";
+          try {
+            const errData = await response.json();
+            if (errData.error) errMessage = errData.error;
+          } catch { /* ignore parse errors */ }
+          throw new Error(errMessage);
+        }
 
         const reader = response.body?.getReader();
         const decoder = new TextDecoder();
@@ -177,7 +184,7 @@ export default function InterviewSessionPage() {
         const errorMsg: ChatMessage = {
           id: crypto.randomUUID(),
           role: "system",
-          content: "Errore di connessione. Riprova.",
+          content: error instanceof Error ? error.message : "Errore di connessione. Riprova.",
           created_at: new Date().toISOString(),
         };
         setMessages((prev) => [...prev, errorMsg]);
