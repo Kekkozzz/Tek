@@ -283,12 +283,26 @@ export default function InterviewSessionPage() {
         }),
       });
 
-      if (!response.ok) throw new Error("API error");
+      if (!response.ok) {
+        let errMessage = "Errore nella generazione del report.";
+        try {
+          const errData = await response.json();
+          if (errData.error) errMessage = errData.error;
+        } catch { /* ignore parse errors */ }
+        throw new Error(errMessage);
+      }
 
       const data = await response.json();
       setReport(data);
     } catch (error) {
       console.error("Error ending session:", error);
+      // Show error in report screen instead of leaving spinner forever
+      setReport({
+        score: 0,
+        strengths: [],
+        improvements: [],
+        summary: error instanceof Error ? error.message : "Errore nella generazione del report. Riprova.",
+      });
     } finally {
       setIsEnding(false);
     }

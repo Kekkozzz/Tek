@@ -5,6 +5,8 @@ import { getAuthenticatedUser } from "@/lib/supabase/server";
 import type { TechTrack } from "@/types";
 
 const REPORT_TIMEOUT_MS = 60_000;
+const MAX_RETRIES = 2;
+const RETRY_BASE_MS = 1_000;
 
 export const maxDuration = 60;
 
@@ -15,6 +17,53 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
       setTimeout(() => reject(new Error(`${label}: timeout after ${ms}ms`)), ms)
     ),
   ]);
+}
+
+function isTransient(err: unknown): boolean {
+  if (err instanceof Error) {
+    const msg = err.message.toLowerCase();
+    if (msg.includes("timeout")) return true;
+    if (msg.includes("429") || msg.includes("rate")) return true;
+    if (msg.includes("503") || msg.includes("500")) return true;
+    if (msg.includes("fetch failed") || msg.includes("econnreset") || msg.includes("network")) return true;
+  }
+  return false;
+}
+
+async function withRetry<T>(fn: () => Promise<T>, label: string): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastError = err;
+      if (attempt < MAX_RETRIES && isTransient(err)) {
+        const delay = RETRY_BASE_MS * Math.pow(2, attempt);
+        console.warn(`${label}: attempt ${attempt + 1} failed, retrying in ${delay}ms...`, err);
+        await new Promise((r) => setTimeout(r, delay));
+      }
+    }
+  }
+  throw lastError;
+}
+
+function classifyError(error: unknown): { status: number; message: string } {
+  if (error instanceof Error) {
+    const msg = error.message.toLowerCase();
+    if (msg.includes("timeout")) {
+      return { status: 504, message: "Timeout: la generazione del report ha impiegato troppo. Riprova." };
+    }
+    if (msg.includes("429") || msg.includes("rate")) {
+      return { status: 429, message: "Troppi messaggi, riprova tra qualche secondo." };
+    }
+    if (msg.includes("safety") || msg.includes("block") || msg.includes("recitation")) {
+      return { status: 400, message: "Il report non può essere generato per questo contenuto." };
+    }
+    if (msg.includes("api_key") || msg.includes("key_missing")) {
+      return { status: 401, message: "Chiave API Gemini mancante o non valida." };
+    }
+  }
+  return { status: 500, message: "Errore del server nella generazione del report. Riprova." };
 }
 
 export async function POST(request: Request) {
@@ -39,8 +88,11 @@ export async function POST(request: Request) {
       durationSeconds?: number;
     } = body;
 
-    // Format messages for the report prompt
-    const formattedMessages = messages
+    // Filter out empty/system messages, then format for the report prompt
+    const validMessages = messages.filter(
+      (m) => m.content?.trim() && m.role !== "system"
+    );
+    const formattedMessages = validMessages
       .map((m) => {
         const label = m.role === "user" ? "CANDIDATO" : "INTERVISTATORE";
         return `${label}: ${m.content}`;
@@ -59,9 +111,12 @@ export async function POST(request: Request) {
       model: "gemini-3-flash-preview",
     });
 
-    const result = await withTimeout(
-      model.generateContent(reportPrompt),
-      REPORT_TIMEOUT_MS,
+    const result = await withRetry(
+      () => withTimeout(
+        model.generateContent(reportPrompt),
+        REPORT_TIMEOUT_MS,
+        "generateReport"
+      ),
       "generateReport"
     );
     const responseText = result.response.text();
@@ -128,9 +183,7 @@ export async function POST(request: Request) {
     return Response.json(report);
   } catch (error) {
     console.error("Interview end API error:", error);
-    return Response.json(
-      { error: "Failed to generate report" },
-      { status: 500 }
-    );
+    const { status, message } = classifyError(error);
+    return Response.json({ error: message }, { status });
   }
 }
